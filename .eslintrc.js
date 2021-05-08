@@ -3,7 +3,6 @@ module.exports = {
     "plugins": ["@typescript-eslint/eslint-plugin"],
     "rules": {
         "getter-return": "error",
-        "no-constant-condition": "error",
         "no-duplicate-case": "error",
         "no-empty": "error",
         "no-extra-parens": "error",
@@ -42,7 +41,6 @@ module.exports = {
         "@typescript-eslint/no-empty-interface": "error",
         "@typescript-eslint/no-explicit-any": "error",
         "@typescript-eslint/no-for-in-array": "error",
-        "@typescript-eslint/no-require-imports": "error",
         "@typescript-eslint/prefer-as-const": "error",
         "@typescript-eslint/type-annotation-spacing": "error",
         "@typescript-eslint/default-param-last": "error",
