@@ -1,0 +1,30 @@
+{
+    "name": "idealang",
+    "version": "1.0.0",
+    "description": "my ideal programming language",
+    "main": "index.js",
+    "scripts": {
+        "test": "nodemon ./build/index.js",
+        "run": "node ./build/index.js",
+        "lint": "eslint . --ext .ts",
+        "lintAndFix": "eslint . --ext .ts --fix"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/fwipsity/idealang.git"
+    },
+    "author": "fwipsity",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/fwipsity/idealang/issues"
+    },
+    "homepage": "https://github.com/fwipsity/idealang#readme",
+    "devDependencies": {
+        "@types/node": "^15.0.2",
+        "@typescript-eslint/eslint-plugin": "^4.22.1",
+        "@typescript-eslint/parser": "^4.22.1",
+        "eslint": "^7.26.0",
+        "nodemon": "^2.0.7",
+        "typescript": "^4.2.4"
+    }
+}
