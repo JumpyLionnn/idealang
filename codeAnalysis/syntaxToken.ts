@@ -13,4 +13,4 @@ class SyntaxToken{
     }
 }
 
-type Value = number | string;
+type Value = number | string | boolean;

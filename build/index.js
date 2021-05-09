@@ -1,40 +1,4 @@
 "use strict";
-class Evaluator {
-    constructor(root) {
-        this._root = root;
-    }
-    evaluate() {
-        return this.evaluateExpression(this._root);
-    }
-    evaluateExpression(node) {
-        if (node instanceof NumberExpressionSyntax) {
-            return node.numberToken.value;
-        }
-        if (node instanceof BinaryExpressionSyntax) {
-            const left = this.evaluateExpression(node.left);
-            const right = this.evaluateExpression(node.right);
-            if (node.operatorToken.type === SyntaxType.PlusToken) {
-                return left + right;
-            }
-            else if (node.operatorToken.type === SyntaxType.MinusToken) {
-                return left - right;
-            }
-            else if (node.operatorToken.type === SyntaxType.StarToken) {
-                return left * right;
-            }
-            else if (node.operatorToken.type === SyntaxType.SlashToken) {
-                return left / right;
-            }
-            else {
-                throw new Error(`Unexpected binary operator ${node.operatorToken.type}`);
-            }
-        }
-        if (node instanceof ParenthesizedExpressionSyntax) {
-            return this.evaluateExpression(node.expression);
-        }
-        throw new Error(`Unexpected node ${node.type}`);
-    }
-}
 class SyntaxToken {
     constructor(type, position, text, value) {
         this.value = "";
@@ -106,6 +70,47 @@ class Lexer {
         return this._diagnostics;
     }
 }
+var SyntaxType;
+(function (SyntaxType) {
+    SyntaxType["BadToken"] = "BadToken";
+    SyntaxType["EndOfFileToken"] = "EndOfFileToken";
+    SyntaxType["WhitespaceToken"] = "WhitespaceToken";
+    SyntaxType["NumberToken"] = "NumberToken";
+    SyntaxType["PlusToken"] = "PlusToken";
+    SyntaxType["MinusToken"] = "MinusToken";
+    SyntaxType["StarToken"] = "StarToken";
+    SyntaxType["SlashToken"] = "SlashToken";
+    SyntaxType["OpenParenthesisToken"] = "OpenParenthesisToken";
+    SyntaxType["CloseParenthesisToken"] = "CloseParenthesisToken";
+    SyntaxType["LiteralExpression"] = "LiteralExpression";
+    SyntaxType["BinaryExpression"] = "BinaryExpression";
+    SyntaxType["UnaryExpression"] = "UnaryExpression";
+    SyntaxType["ParenthesizedExpression"] = "ParenthesizedExpression";
+})(SyntaxType || (SyntaxType = {}));
+class SyntaxFacts {
+    constructor() { }
+    static getBinaryOperatorPrecedence(type) {
+        switch (type) {
+            case SyntaxType.StarToken:
+            case SyntaxType.SlashToken:
+                return 2;
+            case SyntaxType.PlusToken:
+            case SyntaxType.MinusToken:
+                return 1;
+            default:
+                return 0;
+        }
+    }
+    static getUnaryOperatorPrecedence(type) {
+        switch (type) {
+            case SyntaxType.PlusToken:
+            case SyntaxType.MinusToken:
+                return 1;
+            default:
+                return 0;
+        }
+    }
+}
 class SyntaxNode {
     constructor() {
         this.type = SyntaxType.WhitespaceToken;
@@ -113,11 +118,11 @@ class SyntaxNode {
 }
 class ExpressionSyntax extends SyntaxNode {
 }
-class NumberExpressionSyntax extends ExpressionSyntax {
-    constructor(numberToken) {
+class LiteralExpressionSyntax extends ExpressionSyntax {
+    constructor(literalToken) {
         super();
-        this.numberToken = numberToken;
-        this.type = SyntaxType.NumberToken;
+        this.literalToken = literalToken;
+        this.type = SyntaxType.LiteralExpression;
     }
 }
 class BinaryExpressionSyntax extends ExpressionSyntax {
@@ -136,17 +141,6 @@ class ParenthesizedExpressionSyntax extends ExpressionSyntax {
         this.expression = expression;
         this.closeParenthesisToken = closeParenthesisToken;
         this.type = SyntaxType.ParenthesizedExpression;
-    }
-}
-class SyntaxTree {
-    constructor(diagnostics, root, endOfFileToken) {
-        this.root = root;
-        this.endOfFileToken = endOfFileToken;
-        this.diagnostics = diagnostics;
-    }
-    static parse(text) {
-        const parser = new Parser(text);
-        return parser.parse();
     }
 }
 class Parser {
@@ -179,7 +173,7 @@ class Parser {
         this._position++;
         return current;
     }
-    match(type) {
+    matchToken(type) {
         if (this.current.type === type) {
             return this.nextToken();
         }
@@ -187,27 +181,28 @@ class Parser {
         return new SyntaxToken(type, this.current.position, "", null);
     }
     parse() {
-        const expression = this.parseTerm();
-        const endOfFileToken = this.match(SyntaxType.EndOfFileToken);
+        const expression = this.parseExpression();
+        const endOfFileToken = this.matchToken(SyntaxType.EndOfFileToken);
         return new SyntaxTree(this._diagnostics, expression, endOfFileToken);
     }
-    parseExpression() {
-        return this.parseTerm();
-    }
-    parseTerm() {
-        let left = this.parseFactor();
-        while (this.current.type === SyntaxType.PlusToken || this.current.type === SyntaxType.MinusToken) {
+    parseExpression(parentPrecedence = 0) {
+        let left;
+        const unaryOperatorPrecedence = SyntaxFacts.getUnaryOperatorPrecedence(this.current.type);
+        if (unaryOperatorPrecedence !== 0 || unaryOperatorPrecedence > parentPrecedence) {
             const operatorToken = this.nextToken();
-            const right = this.parseFactor();
-            left = new BinaryExpressionSyntax(left, operatorToken, right);
+            const operand = this.parsePrimaryExpression();
+            left = new UnaryExpressionSyntax(operatorToken, operand);
         }
-        return left;
-    }
-    parseFactor() {
-        let left = this.parsePrimaryExpression();
-        while (this.current.type === SyntaxType.StarToken || this.current.type === SyntaxType.SlashToken) {
+        else {
+            left = this.parsePrimaryExpression();
+        }
+        while (true) {
+            const precedence = SyntaxFacts.getBinaryOperatorPrecedence(this.current.type);
+            if (precedence === 0 || precedence < parentPrecedence) {
+                break;
+            }
             const operatorToken = this.nextToken();
-            const right = this.parsePrimaryExpression();
+            const right = this.parseExpression(precedence);
             left = new BinaryExpressionSyntax(left, operatorToken, right);
         }
         return left;
@@ -216,31 +211,81 @@ class Parser {
         if (this.current.type === SyntaxType.OpenParenthesisToken) {
             const left = this.nextToken();
             const expression = this.parseExpression();
-            const right = this.match(SyntaxType.CloseParenthesisToken);
+            const right = this.matchToken(SyntaxType.CloseParenthesisToken);
             return new ParenthesizedExpressionSyntax(left, expression, right);
         }
-        const numberToken = this.match(SyntaxType.NumberToken);
-        return new NumberExpressionSyntax(numberToken);
+        const numberToken = this.matchToken(SyntaxType.NumberToken);
+        return new LiteralExpressionSyntax(numberToken);
     }
     get diagnostics() {
         return this._diagnostics;
     }
 }
-var SyntaxType;
-(function (SyntaxType) {
-    SyntaxType["NumberToken"] = "NumberToken";
-    SyntaxType["WhitespaceToken"] = "WhitespaceToken";
-    SyntaxType["PlusToken"] = "PlusToken";
-    SyntaxType["MinusToken"] = "MinusToken";
-    SyntaxType["StarToken"] = "StarToken";
-    SyntaxType["SlashToken"] = "SlashToken";
-    SyntaxType["OpenParenthesisToken"] = "OpenParenthesisToken";
-    SyntaxType["CloseParenthesisToken"] = "CloseParenthesisToken";
-    SyntaxType["BadToken"] = "BadToken";
-    SyntaxType["EndOfFileToken"] = "EndOfFileToken";
-    SyntaxType["BinaryExpression"] = "BinaryExpression";
-    SyntaxType["ParenthesizedExpression"] = "ParenthesizedExpression";
-})(SyntaxType || (SyntaxType = {}));
+class SyntaxTree {
+    constructor(diagnostics, root, endOfFileToken) {
+        this.root = root;
+        this.endOfFileToken = endOfFileToken;
+        this.diagnostics = diagnostics;
+    }
+    static parse(text) {
+        const parser = new Parser(text);
+        return parser.parse();
+    }
+}
+class UnaryExpressionSyntax extends ExpressionSyntax {
+    constructor(operationToken, operand) {
+        super();
+        this.operatorToken = operationToken;
+        this.operand = operand;
+        this.type = SyntaxType.UnaryExpression;
+    }
+}
+class Evaluator {
+    constructor(root) {
+        this._root = root;
+    }
+    evaluate() {
+        return this.evaluateExpression(this._root);
+    }
+    evaluateExpression(node) {
+        if (node instanceof LiteralExpressionSyntax) {
+            return node.literalToken.value;
+        }
+        if (node instanceof UnaryExpressionSyntax) {
+            const operand = this.evaluateExpression(node.operand);
+            if (node.operatorToken.type === SyntaxType.PlusToken) {
+                return operand;
+            }
+            else if (node.operatorToken.type === SyntaxType.MinusToken) {
+                return -operand;
+            }
+            throw new Error(`Unexpected unary operator ${node.operatorToken.type}`);
+        }
+        if (node instanceof BinaryExpressionSyntax) {
+            const left = this.evaluateExpression(node.left);
+            const right = this.evaluateExpression(node.right);
+            if (node.operatorToken.type === SyntaxType.PlusToken) {
+                return left + right;
+            }
+            else if (node.operatorToken.type === SyntaxType.MinusToken) {
+                return left - right;
+            }
+            else if (node.operatorToken.type === SyntaxType.StarToken) {
+                return left * right;
+            }
+            else if (node.operatorToken.type === SyntaxType.SlashToken) {
+                return left / right;
+            }
+            else {
+                throw new Error(`Unexpected binary operator ${node.operatorToken.type}`);
+            }
+        }
+        if (node instanceof ParenthesizedExpressionSyntax) {
+            return this.evaluateExpression(node.expression);
+        }
+        throw new Error(`Unexpected node ${node.type}`);
+    }
+}
 const fs = require("fs");
 const code = fs.readFileSync("./input.txt").toString();
 const syntaxTree = SyntaxTree.parse(code);

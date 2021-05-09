@@ -1,6 +1,5 @@
-/// <reference path="./parser.ts" />
-/// <reference path="./evaluator.ts" />
-/// <reference path="./syntaxType.ts" />
+/// <reference path="./codeAnalysis/syntaxTree.ts" />
+/// <reference path="./codeAnalysis/evaluator.ts" />
 
 const fs = require("fs");
 

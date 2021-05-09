@@ -1,3 +1,5 @@
+///<reference path="unaryExpressionSyntax.ts" />
+
 class Evaluator {
     private _root: ExpressionSyntax;
     constructor (root: ExpressionSyntax) {
@@ -10,9 +12,21 @@ class Evaluator {
 
     private evaluateExpression (node: ExpressionSyntax): number{
 
-        if(node instanceof NumberExpressionSyntax){
-            return node.numberToken.value as number;
+        if(node instanceof LiteralExpressionSyntax){
+            return node.literalToken.value as number;
         }
+
+        if(node instanceof UnaryExpressionSyntax){
+            const operand = this.evaluateExpression(node.operand);
+            if(node.operatorToken.type === SyntaxType.PlusToken){
+                return operand;
+            }
+            else if(node.operatorToken.type === SyntaxType.MinusToken){
+                return -operand;
+            }
+            throw new Error(`Unexpected unary operator ${node.operatorToken.type}`);
+        }
+
         if(node instanceof BinaryExpressionSyntax){
             const left = this.evaluateExpression(node.left);
             const right = this.evaluateExpression(node.right);

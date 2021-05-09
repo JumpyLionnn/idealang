@@ -1,16 +1,20 @@
 enum SyntaxType{
-    NumberToken = "NumberToken",
+
+    // tokens
+    BadToken = "BadToken",
+    EndOfFileToken = "EndOfFileToken",
     WhitespaceToken = "WhitespaceToken",
+    NumberToken = "NumberToken",
     PlusToken = "PlusToken",
     MinusToken = "MinusToken",
     StarToken = "StarToken",
     SlashToken = "SlashToken",
     OpenParenthesisToken = "OpenParenthesisToken",
     CloseParenthesisToken = "CloseParenthesisToken",
-    BadToken = "BadToken",
-    EndOfFileToken = "EndOfFileToken",
 
-
+    // expressions
+    LiteralExpression = "LiteralExpression",
     BinaryExpression = "BinaryExpression",
+    UnaryExpression = "UnaryExpression",
     ParenthesizedExpression = "ParenthesizedExpression"
 }

@@ -1,4 +1,9 @@
-/// <reference path="syntaxNodes.ts"/>
+/// <reference path="lexer.ts"/>
+/// <reference path="syntaxType.ts"/>
+/// <reference path="syntaxFacts.ts"/>
+/// <reference path="literalExpressionSyntax.ts"/>
+/// <reference path="binaryExpressionSyntax.ts"/>
+/// <reference path="parenthesizedExpressionSyntax.ts"/>
 
 class Parser{
     private _tokens: SyntaxToken[] = [];
@@ -36,7 +41,7 @@ class Parser{
         return current;
     }
 
-    private match (type: SyntaxType): SyntaxToken{
+    private matchToken (type: SyntaxType): SyntaxToken{
         if(this.current.type === type){
             return this.nextToken();
         }
@@ -45,32 +50,31 @@ class Parser{
     }
 
     public parse (): SyntaxTree{
-        const expression = this.parseTerm();
-        const endOfFileToken = this.match(SyntaxType.EndOfFileToken);
+        const expression = this.parseExpression();
+        const endOfFileToken = this.matchToken(SyntaxType.EndOfFileToken);
         return new SyntaxTree(this._diagnostics, expression, endOfFileToken);
     }
 
-    private parseExpression (): ExpressionSyntax{
-        return this.parseTerm();
-    }
-
-    private parseTerm (): ExpressionSyntax{
-        let left = this.parseFactor();
-
-        while (this.current.type === SyntaxType.PlusToken ||  this.current.type === SyntaxType.MinusToken){
+    private parseExpression (parentPrecedence: number = 0): ExpressionSyntax{
+        let left: ExpressionSyntax;
+        const unaryOperatorPrecedence = SyntaxFacts.getUnaryOperatorPrecedence(this.current.type);
+        if(unaryOperatorPrecedence !== 0 || unaryOperatorPrecedence > parentPrecedence){
             const operatorToken = this.nextToken();
-            const right = this.parseFactor();
-            left = new BinaryExpressionSyntax(left, operatorToken, right);
+            const operand = this.parsePrimaryExpression();
+            left = new UnaryExpressionSyntax(operatorToken, operand);
         }
-        return left;
-    }
+        else{
+            left = this.parsePrimaryExpression();
+        }
 
-    private parseFactor (): ExpressionSyntax{
-        let left = this.parsePrimaryExpression();
+        while(true){
+            const precedence = SyntaxFacts.getBinaryOperatorPrecedence(this.current.type);
+            if(precedence === 0 || precedence < parentPrecedence){
+                break;
+            }
 
-        while (this.current.type === SyntaxType.StarToken ||  this.current.type === SyntaxType.SlashToken){
             const operatorToken = this.nextToken();
-            const right = this.parsePrimaryExpression();
+            const right = this.parseExpression(precedence);
             left = new BinaryExpressionSyntax(left, operatorToken, right);
         }
         return left;
@@ -80,11 +84,11 @@ class Parser{
         if(this.current.type === SyntaxType.OpenParenthesisToken){
             const left = this.nextToken();
             const expression = this.parseExpression();
-            const right = this.match(SyntaxType.CloseParenthesisToken);
+            const right = this.matchToken(SyntaxType.CloseParenthesisToken);
             return new ParenthesizedExpressionSyntax(left, expression, right);
         }
-        const numberToken = this.match(SyntaxType.NumberToken);
-        return new NumberExpressionSyntax(numberToken);
+        const numberToken = this.matchToken(SyntaxType.NumberToken);
+        return new LiteralExpressionSyntax(numberToken);
     }
 
     get diagnostics (): string[]{
