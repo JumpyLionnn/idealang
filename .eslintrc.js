@@ -5,7 +5,6 @@ module.exports = {
         "getter-return": "error",
         "no-duplicate-case": "error",
         "no-empty": "error",
-        "no-extra-parens": "error",
         "no-extra-semi": "error",
         "no-invalid-regexp": "error",
         "no-setter-return": "error",

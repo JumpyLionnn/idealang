@@ -1,55 +1,60 @@
-///<reference path="unaryExpressionSyntax.ts" />
+///<reference path="syntax/unaryExpressionSyntax.ts" />
+///<reference path="binding/boundUnaryExpression.ts" />
 
 class Evaluator {
-    private _root: ExpressionSyntax;
-    constructor (root: ExpressionSyntax) {
+    private _root: BoundExpression;
+    constructor (root: BoundExpression) {
         this._root = root;
     }
 
-    public evaluate (): number{
+    public evaluate (): all{
         return this.evaluateExpression(this._root);
     }
 
-    private evaluateExpression (node: ExpressionSyntax): number{
+    private evaluateExpression (node: BoundExpression): all{
 
-        if(node instanceof LiteralExpressionSyntax){
-            return node.literalToken.value as number;
+        if(node instanceof BoundLiteralExpression){
+            return node.value;
         }
 
-        if(node instanceof UnaryExpressionSyntax){
+        if(node instanceof BoundUnaryExpression){
             const operand = this.evaluateExpression(node.operand);
-            if(node.operatorToken.type === SyntaxType.PlusToken){
-                return operand;
+            switch (node.operator.kind) {
+                case BoundUnaryOperatorKind.Identity:
+                    return operand as number;
+                case BoundUnaryOperatorKind.Negation:
+                    return -operand as number;
+                case BoundUnaryOperatorKind.LogicalNegation:
+                    return !operand as boolean;
+                default:
+                    throw new Error(`Unexpected unary operator ${node.operator.kind}`);
             }
-            else if(node.operatorToken.type === SyntaxType.MinusToken){
-                return -operand;
-            }
-            throw new Error(`Unexpected unary operator ${node.operatorToken.type}`);
         }
 
-        if(node instanceof BinaryExpressionSyntax){
+        if(node instanceof BoundBinaryExpression){
             const left = this.evaluateExpression(node.left);
             const right = this.evaluateExpression(node.right);
-
-            if(node.operatorToken.type === SyntaxType.PlusToken){
-                return left + right;
-            }
-            else if(node.operatorToken.type === SyntaxType.MinusToken){
-                return left - right;
-            }
-            else if(node.operatorToken.type === SyntaxType.StarToken){
-                return left * right;
-            }
-            else if(node.operatorToken.type === SyntaxType.SlashToken){
-                return left / right;
-            }
-            else{
-                throw new Error(`Unexpected binary operator ${node.operatorToken.type}`);
+            switch (node.operator.kind) {
+                case BoundBinaryOperatorKind.Addition:
+                    return (left as number) + (right as number);
+                case BoundBinaryOperatorKind.Substruction:
+                    return (left as number) - (right as number);
+                case BoundBinaryOperatorKind.Multiplication:
+                    return (left as number) * (right as number);
+                case BoundBinaryOperatorKind.Division:
+                    return (left as number) / (right as number);
+                case BoundBinaryOperatorKind.LogicalAnd:
+                    return (left as boolean) && (right as boolean);
+                case BoundBinaryOperatorKind.LogicalOr:
+                    return (left as boolean) || (right as boolean);
+                case BoundBinaryOperatorKind.Equals:
+                    return left === right;
+                case BoundBinaryOperatorKind.NotEquals:
+                    return !(left === right);
+                default:
+                    throw new Error(`Unexpected binary operator ${node.operator.kind}`);
             }
         }
-        if(node instanceof ParenthesizedExpressionSyntax){
-            return this.evaluateExpression(node.expression);
-        }
-        throw new Error(`Unexpected node ${node.type}`);
+        throw new Error(`Unexpected node ${node.kind}`);
     }
 }

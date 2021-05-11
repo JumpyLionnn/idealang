@@ -1,8 +1,7 @@
 "use strict";
 class SyntaxToken {
-    constructor(type, position, text, value) {
-        this.value = "";
-        this.type = type;
+    constructor(kind, position, text, value) {
+        this.kind = kind;
         this.position = position;
         this.text = text;
         if (value) {
@@ -17,17 +16,24 @@ class Lexer {
         this._text = text;
     }
     get currentChar() {
-        if (this._position === this._text.length) {
+        return this.peek(0);
+    }
+    get lookAhead() {
+        return this.peek(1);
+    }
+    peek(offset) {
+        const index = this._position + offset;
+        if (index === this._text.length) {
             return "\0";
         }
-        return this._text.charAt(this._position);
+        return this._text.charAt(index);
     }
     next() {
         this._position++;
     }
     nextToken() {
         if (this._position >= this._text.length) {
-            return new SyntaxToken(SyntaxType.EndOfFileToken, this._position, "\0", null);
+            return new SyntaxToken(SyntaxKind.EndOfFileToken, this._position, "\0", null);
         }
         if (/[0-9]/.test(this.currentChar)) {
             const start = this._position;
@@ -35,7 +41,7 @@ class Lexer {
                 this.next();
             }
             const text = this._text.substring(start, this._position);
-            return new SyntaxToken(SyntaxType.NumberToken, start, text, parseInt(text));
+            return new SyntaxToken(SyntaxKind.NumberToken, start, text, parseInt(text));
         }
         if (/\s/.test(this.currentChar)) {
             const start = this._position;
@@ -43,86 +49,143 @@ class Lexer {
                 this.next();
             }
             const text = this._text.substring(start, this._position);
-            return new SyntaxToken(SyntaxType.WhitespaceToken, start, text, null);
+            return new SyntaxToken(SyntaxKind.WhitespaceToken, start, text, null);
         }
-        if (this.currentChar === "+") {
-            return new SyntaxToken(SyntaxType.PlusToken, this._position++, "+", null);
+        if (/[a-zA-Z]/.test(this.currentChar)) {
+            const start = this._position;
+            while (/[a-zA-Z]/.test(this.currentChar)) {
+                this.next();
+            }
+            const text = this._text.substring(start, this._position);
+            const kind = SyntaxFacts.getKeywordKind(text);
+            return new SyntaxToken(kind, start, text, null);
         }
-        else if (this.currentChar === "-") {
-            return new SyntaxToken(SyntaxType.MinusToken, this._position++, "-", null);
+        switch (this.currentChar) {
+            case "+":
+                return new SyntaxToken(SyntaxKind.PlusToken, this._position++, "+", null);
+            case "-":
+                return new SyntaxToken(SyntaxKind.MinusToken, this._position++, "-", null);
+            case "*":
+                return new SyntaxToken(SyntaxKind.StarToken, this._position++, "*", null);
+            case "/":
+                return new SyntaxToken(SyntaxKind.SlashToken, this._position++, "/", null);
+            case "(":
+                return new SyntaxToken(SyntaxKind.OpenParenthesisToken, this._position++, "(", null);
+            case ")":
+                return new SyntaxToken(SyntaxKind.CloseParenthesisToken, this._position++, ")", null);
+            case "&":
+                if (this.lookAhead === "&") {
+                    return new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, this._position += 2, "&&", null);
+                }
+                break;
+            case "|":
+                if (this.lookAhead === "|") {
+                    return new SyntaxToken(SyntaxKind.PipePipeToken, this._position += 2, "||", null);
+                }
+                break;
+            case "=":
+                if (this.lookAhead === "=") {
+                    return new SyntaxToken(SyntaxKind.EqualsEqualsToken, this._position += 2, "==", null);
+                }
+                break;
+            case "!":
+                if (this.lookAhead === "=") {
+                    return new SyntaxToken(SyntaxKind.BangEqualsToken, this._position += 2, "!=", null);
+                }
+                return new SyntaxToken(SyntaxKind.BangToken, this._position++, "!", null);
         }
-        else if (this.currentChar === "*") {
-            return new SyntaxToken(SyntaxType.StarToken, this._position++, "*", null);
-        }
-        else if (this.currentChar === "/") {
-            return new SyntaxToken(SyntaxType.SlashToken, this._position++, "/", null);
-        }
-        else if (this.currentChar === "(") {
-            return new SyntaxToken(SyntaxType.OpenParenthesisToken, this._position++, "(", null);
-        }
-        else if (this.currentChar === ")") {
-            return new SyntaxToken(SyntaxType.CloseParenthesisToken, this._position++, ")", null);
-        }
-        this._diagnostics.push(`ERROR: bad character in input: '${this.currentChar}'`);
-        return new SyntaxToken(SyntaxType.BadToken, this._position++, this._text.charAt(this._position - 1), null);
+        this._diagnostics.push(`ERROR: bad character input: '${this.currentChar}'`);
+        return new SyntaxToken(SyntaxKind.BadToken, this._position++, this._text.charAt(this._position - 1), null);
     }
     get diagnostics() {
         return this._diagnostics;
     }
 }
-var SyntaxType;
-(function (SyntaxType) {
-    SyntaxType["BadToken"] = "BadToken";
-    SyntaxType["EndOfFileToken"] = "EndOfFileToken";
-    SyntaxType["WhitespaceToken"] = "WhitespaceToken";
-    SyntaxType["NumberToken"] = "NumberToken";
-    SyntaxType["PlusToken"] = "PlusToken";
-    SyntaxType["MinusToken"] = "MinusToken";
-    SyntaxType["StarToken"] = "StarToken";
-    SyntaxType["SlashToken"] = "SlashToken";
-    SyntaxType["OpenParenthesisToken"] = "OpenParenthesisToken";
-    SyntaxType["CloseParenthesisToken"] = "CloseParenthesisToken";
-    SyntaxType["LiteralExpression"] = "LiteralExpression";
-    SyntaxType["BinaryExpression"] = "BinaryExpression";
-    SyntaxType["UnaryExpression"] = "UnaryExpression";
-    SyntaxType["ParenthesizedExpression"] = "ParenthesizedExpression";
-})(SyntaxType || (SyntaxType = {}));
+var SyntaxKind;
+(function (SyntaxKind) {
+    SyntaxKind["BadToken"] = "BadToken";
+    SyntaxKind["EndOfFileToken"] = "EndOfFileToken";
+    SyntaxKind["WhitespaceToken"] = "WhitespaceToken";
+    SyntaxKind["NumberToken"] = "NumberToken";
+    SyntaxKind["PlusToken"] = "PlusToken";
+    SyntaxKind["MinusToken"] = "MinusToken";
+    SyntaxKind["StarToken"] = "StarToken";
+    SyntaxKind["SlashToken"] = "SlashToken";
+    SyntaxKind["BangToken"] = "BangToken";
+    SyntaxKind["AmpersandAmpersandToken"] = "AmpersandAmpersandToken";
+    SyntaxKind["PipePipeToken"] = "PipePipeToken";
+    SyntaxKind["EqualsEqualsToken"] = "EqualsEqualsToken";
+    SyntaxKind["BangEqualsToken"] = "BangEqualsToken";
+    SyntaxKind["OpenParenthesisToken"] = "OpenParenthesisToken";
+    SyntaxKind["CloseParenthesisToken"] = "CloseParenthesisToken";
+    SyntaxKind["IdentifierToken"] = "IdentifierToken";
+    SyntaxKind["FalseKeyword"] = "FalseKeyword";
+    SyntaxKind["TrueKeyword"] = "TrueKeyword";
+    SyntaxKind["LiteralExpression"] = "LiteralExpression";
+    SyntaxKind["BinaryExpression"] = "BinaryExpression";
+    SyntaxKind["UnaryExpression"] = "UnaryExpression";
+    SyntaxKind["ParenthesizedExpression"] = "ParenthesizedExpression";
+})(SyntaxKind || (SyntaxKind = {}));
 class SyntaxFacts {
     constructor() { }
-    static getBinaryOperatorPrecedence(type) {
-        switch (type) {
-            case SyntaxType.StarToken:
-            case SyntaxType.SlashToken:
+    static getUnaryOperatorPrecedence(kind) {
+        switch (kind) {
+            case SyntaxKind.PlusToken:
+            case SyntaxKind.MinusToken:
+            case SyntaxKind.BangToken:
+                return 6;
+            default:
+                return 0;
+        }
+    }
+    static getBinaryOperatorPrecedence(kind) {
+        switch (kind) {
+            case SyntaxKind.StarToken:
+            case SyntaxKind.SlashToken:
+                return 5;
+            case SyntaxKind.PlusToken:
+            case SyntaxKind.MinusToken:
+                return 4;
+            case SyntaxKind.EqualsEqualsToken:
+            case SyntaxKind.BangEqualsToken:
+                return 3;
+            case SyntaxKind.AmpersandAmpersandToken:
                 return 2;
-            case SyntaxType.PlusToken:
-            case SyntaxType.MinusToken:
+            case SyntaxKind.PipePipeToken:
                 return 1;
             default:
                 return 0;
         }
     }
-    static getUnaryOperatorPrecedence(type) {
-        switch (type) {
-            case SyntaxType.PlusToken:
-            case SyntaxType.MinusToken:
-                return 1;
+    static getKeywordKind(text) {
+        switch (text) {
+            case "true":
+                return SyntaxKind.TrueKeyword;
+            case "false":
+                return SyntaxKind.FalseKeyword;
             default:
-                return 0;
+                return SyntaxKind.IdentifierToken;
         }
     }
 }
 class SyntaxNode {
     constructor() {
-        this.type = SyntaxType.WhitespaceToken;
+        this.kind = SyntaxKind.WhitespaceToken;
     }
 }
 class ExpressionSyntax extends SyntaxNode {
 }
 class LiteralExpressionSyntax extends ExpressionSyntax {
-    constructor(literalToken) {
+    constructor(literalToken, value) {
         super();
         this.literalToken = literalToken;
-        this.type = SyntaxType.LiteralExpression;
+        if (value !== undefined) {
+            this.value = value;
+        }
+        else {
+            this.value = literalToken.value;
+        }
+        this.kind = SyntaxKind.LiteralExpression;
     }
 }
 class BinaryExpressionSyntax extends ExpressionSyntax {
@@ -131,7 +194,7 @@ class BinaryExpressionSyntax extends ExpressionSyntax {
         this.left = left;
         this.operatorToken = operationToken;
         this.right = right;
-        this.type = SyntaxType.BinaryExpression;
+        this.kind = SyntaxKind.BinaryExpression;
     }
 }
 class ParenthesizedExpressionSyntax extends ExpressionSyntax {
@@ -140,7 +203,7 @@ class ParenthesizedExpressionSyntax extends ExpressionSyntax {
         this.openParenthesisToken = openParenthesisToken;
         this.expression = expression;
         this.closeParenthesisToken = closeParenthesisToken;
-        this.type = SyntaxType.ParenthesizedExpression;
+        this.kind = SyntaxKind.ParenthesizedExpression;
     }
 }
 class Parser {
@@ -149,10 +212,10 @@ class Parser {
         this._position = 0;
         this._diagnostics = [];
         const lexer = new Lexer(text);
-        let token = new SyntaxToken(SyntaxType.WhitespaceToken, 0, "", null);
-        while (token.type !== SyntaxType.EndOfFileToken) {
+        let token = new SyntaxToken(SyntaxKind.WhitespaceToken, 0, "", null);
+        while (token.kind !== SyntaxKind.EndOfFileToken) {
             token = lexer.nextToken();
-            if (token.type !== SyntaxType.WhitespaceToken && token.type !== SyntaxType.BadToken) {
+            if (token.kind !== SyntaxKind.WhitespaceToken && token.kind !== SyntaxKind.BadToken) {
                 this._tokens.push(token);
             }
         }
@@ -173,21 +236,21 @@ class Parser {
         this._position++;
         return current;
     }
-    matchToken(type) {
-        if (this.current.type === type) {
+    matchToken(kind) {
+        if (this.current.kind === kind) {
             return this.nextToken();
         }
-        this._diagnostics.push(`ERROR: Unexpected token <${this.current.type}> expected <${type}>`);
-        return new SyntaxToken(type, this.current.position, "", null);
+        this._diagnostics.push(`ERROR: Unexpected token <${this.current.kind}> expected <${kind}>`);
+        return new SyntaxToken(kind, this.current.position, "", null);
     }
     parse() {
         const expression = this.parseExpression();
-        const endOfFileToken = this.matchToken(SyntaxType.EndOfFileToken);
+        const endOfFileToken = this.matchToken(SyntaxKind.EndOfFileToken);
         return new SyntaxTree(this._diagnostics, expression, endOfFileToken);
     }
     parseExpression(parentPrecedence = 0) {
         let left;
-        const unaryOperatorPrecedence = SyntaxFacts.getUnaryOperatorPrecedence(this.current.type);
+        const unaryOperatorPrecedence = SyntaxFacts.getUnaryOperatorPrecedence(this.current.kind);
         if (unaryOperatorPrecedence !== 0 || unaryOperatorPrecedence > parentPrecedence) {
             const operatorToken = this.nextToken();
             const operand = this.parsePrimaryExpression();
@@ -197,7 +260,7 @@ class Parser {
             left = this.parsePrimaryExpression();
         }
         while (true) {
-            const precedence = SyntaxFacts.getBinaryOperatorPrecedence(this.current.type);
+            const precedence = SyntaxFacts.getBinaryOperatorPrecedence(this.current.kind);
             if (precedence === 0 || precedence < parentPrecedence) {
                 break;
             }
@@ -208,14 +271,21 @@ class Parser {
         return left;
     }
     parsePrimaryExpression() {
-        if (this.current.type === SyntaxType.OpenParenthesisToken) {
-            const left = this.nextToken();
-            const expression = this.parseExpression();
-            const right = this.matchToken(SyntaxType.CloseParenthesisToken);
-            return new ParenthesizedExpressionSyntax(left, expression, right);
+        switch (this.current.kind) {
+            case SyntaxKind.OpenParenthesisToken:
+                const left = this.nextToken();
+                const expression = this.parseExpression();
+                const right = this.matchToken(SyntaxKind.CloseParenthesisToken);
+                return new ParenthesizedExpressionSyntax(left, expression, right);
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.FalseKeyword:
+                const keywordToken = this.nextToken();
+                const value = keywordToken.kind === SyntaxKind.TrueKeyword;
+                return new LiteralExpressionSyntax(keywordToken, value);
+            default:
+                const numberToken = this.matchToken(SyntaxKind.NumberToken);
+                return new LiteralExpressionSyntax(numberToken);
         }
-        const numberToken = this.matchToken(SyntaxType.NumberToken);
-        return new LiteralExpressionSyntax(numberToken);
     }
     get diagnostics() {
         return this._diagnostics;
@@ -237,7 +307,20 @@ class UnaryExpressionSyntax extends ExpressionSyntax {
         super();
         this.operatorToken = operationToken;
         this.operand = operand;
-        this.type = SyntaxType.UnaryExpression;
+        this.kind = SyntaxKind.UnaryExpression;
+    }
+}
+class BoundNode {
+}
+class BoundExpression extends BoundNode {
+}
+class BoundUnaryExpression extends BoundExpression {
+    constructor(operator, operand) {
+        super();
+        this.operator = operator;
+        this.operand = operand;
+        this.type = operator.resultType;
+        this.kind = BoundNodeKind.UnaryExpression;
     }
 }
 class Evaluator {
@@ -248,54 +331,227 @@ class Evaluator {
         return this.evaluateExpression(this._root);
     }
     evaluateExpression(node) {
-        if (node instanceof LiteralExpressionSyntax) {
-            return node.literalToken.value;
+        if (node instanceof BoundLiteralExpression) {
+            return node.value;
         }
-        if (node instanceof UnaryExpressionSyntax) {
+        if (node instanceof BoundUnaryExpression) {
             const operand = this.evaluateExpression(node.operand);
-            if (node.operatorToken.type === SyntaxType.PlusToken) {
-                return operand;
+            switch (node.operator.kind) {
+                case BoundUnaryOperatorKind.Identity:
+                    return operand;
+                case BoundUnaryOperatorKind.Negation:
+                    return -operand;
+                case BoundUnaryOperatorKind.LogicalNegation:
+                    return !operand;
+                default:
+                    throw new Error(`Unexpected unary operator ${node.operator.kind}`);
             }
-            else if (node.operatorToken.type === SyntaxType.MinusToken) {
-                return -operand;
-            }
-            throw new Error(`Unexpected unary operator ${node.operatorToken.type}`);
         }
-        if (node instanceof BinaryExpressionSyntax) {
+        if (node instanceof BoundBinaryExpression) {
             const left = this.evaluateExpression(node.left);
             const right = this.evaluateExpression(node.right);
-            if (node.operatorToken.type === SyntaxType.PlusToken) {
-                return left + right;
+            switch (node.operator.kind) {
+                case BoundBinaryOperatorKind.Addition:
+                    return left + right;
+                case BoundBinaryOperatorKind.Substruction:
+                    return left - right;
+                case BoundBinaryOperatorKind.Multiplication:
+                    return left * right;
+                case BoundBinaryOperatorKind.Division:
+                    return left / right;
+                case BoundBinaryOperatorKind.LogicalAnd:
+                    return left && right;
+                case BoundBinaryOperatorKind.LogicalOr:
+                    return left || right;
+                case BoundBinaryOperatorKind.Equals:
+                    return left === right;
+                case BoundBinaryOperatorKind.NotEquals:
+                    return !(left === right);
+                default:
+                    throw new Error(`Unexpected binary operator ${node.operator.kind}`);
             }
-            else if (node.operatorToken.type === SyntaxType.MinusToken) {
-                return left - right;
-            }
-            else if (node.operatorToken.type === SyntaxType.StarToken) {
-                return left * right;
-            }
-            else if (node.operatorToken.type === SyntaxType.SlashToken) {
-                return left / right;
+        }
+        throw new Error(`Unexpected node ${node.kind}`);
+    }
+}
+var Type;
+(function (Type) {
+    Type["int"] = "int";
+    Type["float"] = "float";
+    Type["boolean"] = "boolean";
+})(Type || (Type = {}));
+(function (Type) {
+    function getType(data) {
+        if (typeof data === "number") {
+            if (data % 1 === 0) {
+                return Type.int;
             }
             else {
-                throw new Error(`Unexpected binary operator ${node.operatorToken.type}`);
+                return Type.float;
             }
         }
-        if (node instanceof ParenthesizedExpressionSyntax) {
-            return this.evaluateExpression(node.expression);
+        else if (typeof data === "boolean") {
+            return Type.boolean;
         }
-        throw new Error(`Unexpected node ${node.type}`);
+        else {
+            throw new Error("Unknown Type.");
+        }
+    }
+    Type.getType = getType;
+})(Type || (Type = {}));
+var BoundNodeKind;
+(function (BoundNodeKind) {
+    BoundNodeKind["UnaryExpression"] = "UnaryExpression";
+    BoundNodeKind["LiteralExpression"] = "LiteralExpression";
+    BoundNodeKind["BinaryExpression"] = "BinaryExpression";
+})(BoundNodeKind || (BoundNodeKind = {}));
+class BoundLiteralExpression extends BoundExpression {
+    constructor(value) {
+        super();
+        this.value = value;
+        this.type = Type.getType(this.value);
+        this.kind = BoundNodeKind.LiteralExpression;
+    }
+}
+var BoundBinaryOperatorKind;
+(function (BoundBinaryOperatorKind) {
+    BoundBinaryOperatorKind["Addition"] = "Addition";
+    BoundBinaryOperatorKind["Substruction"] = "Substruction";
+    BoundBinaryOperatorKind["Multiplication"] = "Multiplication";
+    BoundBinaryOperatorKind["Division"] = "Division";
+    BoundBinaryOperatorKind["LogicalAnd"] = "LogicalAnd";
+    BoundBinaryOperatorKind["LogicalOr"] = "LogicalOr";
+    BoundBinaryOperatorKind["Equals"] = "Equals";
+    BoundBinaryOperatorKind["NotEquals"] = "NotEquals";
+})(BoundBinaryOperatorKind || (BoundBinaryOperatorKind = {}));
+class BoundBinaryOperator {
+    constructor(syntaxKind, kind, leftType, rightType, resultType) {
+        this.syntaxKind = syntaxKind;
+        this.kind = kind;
+        this.leftType = leftType;
+        this.rightType = rightType || leftType;
+        this.resultType = resultType || leftType;
+    }
+    static bind(syntaxKind, leftType, rightType) {
+        for (let i = 0; i < this._operators.length; i++) {
+            if (this._operators[i].syntaxKind === syntaxKind && this._operators[i].leftType === leftType && this._operators[i].rightType === rightType) {
+                return this._operators[i];
+            }
+        }
+        return null;
+    }
+}
+BoundBinaryOperator._operators = [
+    new BoundBinaryOperator(SyntaxKind.PlusToken, BoundBinaryOperatorKind.Addition, Type.int),
+    new BoundBinaryOperator(SyntaxKind.MinusToken, BoundBinaryOperatorKind.Substruction, Type.int),
+    new BoundBinaryOperator(SyntaxKind.StarToken, BoundBinaryOperatorKind.Multiplication, Type.int),
+    new BoundBinaryOperator(SyntaxKind.SlashToken, BoundBinaryOperatorKind.Division, Type.int),
+    new BoundBinaryOperator(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, Type.int, Type.int, Type.boolean),
+    new BoundBinaryOperator(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEquals, Type.int, Type.int, Type.boolean),
+    new BoundBinaryOperator(SyntaxKind.AmpersandAmpersandToken, BoundBinaryOperatorKind.LogicalAnd, Type.boolean),
+    new BoundBinaryOperator(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.LogicalOr, Type.boolean),
+    new BoundBinaryOperator(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, Type.boolean),
+    new BoundBinaryOperator(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEquals, Type.boolean),
+];
+class BoundBinaryExpression extends BoundExpression {
+    constructor(left, operator, right) {
+        super();
+        this.left = left;
+        this.operator = operator;
+        this.right = right;
+        this.type = operator.resultType;
+        this.kind = BoundNodeKind.BinaryExpression;
+    }
+}
+var BoundUnaryOperatorKind;
+(function (BoundUnaryOperatorKind) {
+    BoundUnaryOperatorKind["Identity"] = "Identity";
+    BoundUnaryOperatorKind["Negation"] = "Negation";
+    BoundUnaryOperatorKind["LogicalNegation"] = "LogicalNegation";
+})(BoundUnaryOperatorKind || (BoundUnaryOperatorKind = {}));
+class BoundUnaryOperator {
+    constructor(syntaxKind, kind, operandType, resultType) {
+        this.syntaxKind = syntaxKind;
+        this.kind = kind;
+        this.operandType = operandType;
+        this.resultType = resultType || operandType;
+    }
+    static bind(syntaxKind, operandType) {
+        for (let i = 0; i < this._operators.length; i++) {
+            if (this._operators[i].syntaxKind === syntaxKind && this._operators[i].operandType === operandType) {
+                return this._operators[i];
+            }
+        }
+        return null;
+    }
+}
+BoundUnaryOperator._operators = [
+    new BoundUnaryOperator(SyntaxKind.BangToken, BoundUnaryOperatorKind.LogicalNegation, Type.boolean),
+    new BoundUnaryOperator(SyntaxKind.PlusToken, BoundUnaryOperatorKind.Identity, Type.int),
+    new BoundUnaryOperator(SyntaxKind.MinusToken, BoundUnaryOperatorKind.Negation, Type.int),
+];
+class Binder {
+    constructor() {
+        this._diagnostics = [];
+    }
+    get diagnostics() { return this._diagnostics; }
+    bindExpression(syntax) {
+        switch (syntax.kind) {
+            case SyntaxKind.LiteralExpression:
+                return this.bindLiteralExpression(syntax);
+            case SyntaxKind.UnaryExpression:
+                return this.bindUnaryExpression(syntax);
+            case SyntaxKind.BinaryExpression:
+                return this.bindBinaryExpression(syntax);
+            case SyntaxKind.ParenthesizedExpression:
+                return this.bindExpression(syntax.expression);
+            default:
+                throw new Error(`Unexpected syntax ${syntax.kind}`);
+        }
+    }
+    bindLiteralExpression(syntax) {
+        let value;
+        if (syntax.value !== undefined) {
+            value = syntax.value;
+        }
+        else {
+            value = 0;
+        }
+        return new BoundLiteralExpression(value);
+    }
+    bindUnaryExpression(syntax) {
+        const boundOperand = this.bindExpression(syntax.operand);
+        const boundOperator = BoundUnaryOperator.bind(syntax.operatorToken.kind, boundOperand.type);
+        if (boundOperator === null) {
+            this._diagnostics.push(`Unary operator '${syntax.operatorToken.text}' is not defined for type ${boundOperand.type}.`);
+            return boundOperand;
+        }
+        return new BoundUnaryExpression(boundOperator, boundOperand);
+    }
+    bindBinaryExpression(syntax) {
+        const boundLeft = this.bindExpression(syntax.left);
+        const boundRight = this.bindExpression(syntax.right);
+        const boundOperator = BoundBinaryOperator.bind(syntax.operatorToken.kind, boundLeft.type, boundRight.type);
+        if (boundOperator === null) {
+            this._diagnostics.push(`Binary operator '${syntax.operatorToken.text}' is not defined for type ${boundLeft.type} and ${boundRight.type}.`);
+            return boundLeft;
+        }
+        return new BoundBinaryExpression(boundLeft, boundOperator, boundRight);
     }
 }
 const fs = require("fs");
 const code = fs.readFileSync("./input.txt").toString();
 const syntaxTree = SyntaxTree.parse(code);
+const binder = new Binder();
+const boundExpression = binder.bindExpression(syntaxTree.root);
+const diagnostics = syntaxTree.diagnostics.push(...binder.diagnostics);
 if (syntaxTree.diagnostics.length > 0) {
     for (let i = 0; i < syntaxTree.diagnostics.length; i++) {
         console.error(syntaxTree.diagnostics[i]);
     }
 }
 else {
-    const evaluator = new Evaluator(syntaxTree.root);
+    const evaluator = new Evaluator(boundExpression);
     const result = evaluator.evaluate();
     console.log(result);
 }

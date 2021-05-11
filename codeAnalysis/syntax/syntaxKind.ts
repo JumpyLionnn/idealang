@@ -1,4 +1,4 @@
-enum SyntaxType{
+enum SyntaxKind{
 
     // tokens
     BadToken = "BadToken",
@@ -9,8 +9,18 @@ enum SyntaxType{
     MinusToken = "MinusToken",
     StarToken = "StarToken",
     SlashToken = "SlashToken",
+    BangToken = "BangToken",
+    AmpersandAmpersandToken = "AmpersandAmpersandToken",
+    PipePipeToken = "PipePipeToken",
+    EqualsEqualsToken = "EqualsEqualsToken",
+    BangEqualsToken = "BangEqualsToken",
     OpenParenthesisToken = "OpenParenthesisToken",
     CloseParenthesisToken = "CloseParenthesisToken",
+    IdentifierToken = "IdentifierToken",
+
+    // keywords
+    FalseKeyword = "FalseKeyword",
+    TrueKeyword = "TrueKeyword",
 
     // expressions
     LiteralExpression = "LiteralExpression",

@@ -5,6 +5,6 @@ class UnaryExpressionSyntax extends ExpressionSyntax {
         super();
         this.operatorToken = operationToken;
         this.operand = operand;
-        this.type = SyntaxType.UnaryExpression;
+        this.kind = SyntaxKind.UnaryExpression;
     }
 }

@@ -9,6 +9,6 @@ class ParenthesizedExpressionSyntax extends ExpressionSyntax {
         this.openParenthesisToken = openParenthesisToken;
         this.expression = expression;
         this.closeParenthesisToken = closeParenthesisToken;
-        this.type = SyntaxType.ParenthesizedExpression;
+        this.kind = SyntaxKind.ParenthesizedExpression;
     }
 }

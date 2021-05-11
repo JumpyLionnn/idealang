@@ -1,5 +1,5 @@
 /// <reference path="lexer.ts"/>
-/// <reference path="syntaxType.ts"/>
+/// <reference path="syntaxKind.ts"/>
 /// <reference path="syntaxFacts.ts"/>
 /// <reference path="literalExpressionSyntax.ts"/>
 /// <reference path="binaryExpressionSyntax.ts"/>
@@ -12,11 +12,11 @@ class Parser{
     public constructor (text: string){
 
         const lexer = new Lexer(text);
-        let token: SyntaxToken = new SyntaxToken(SyntaxType.WhitespaceToken, 0, "", null);
-        while(token.type !== SyntaxType.EndOfFileToken){
+        let token: SyntaxToken = new SyntaxToken(SyntaxKind.WhitespaceToken, 0, "", null);
+        while(token.kind !== SyntaxKind.EndOfFileToken){
             token = lexer.nextToken();
 
-            if(token.type !== SyntaxType.WhitespaceToken && token.type !== SyntaxType.BadToken){
+            if(token.kind !== SyntaxKind.WhitespaceToken && token.kind !== SyntaxKind.BadToken){
                 this._tokens.push(token);
             }
         }
@@ -41,23 +41,23 @@ class Parser{
         return current;
     }
 
-    private matchToken (type: SyntaxType): SyntaxToken{
-        if(this.current.type === type){
+    private matchToken (kind: SyntaxKind): SyntaxToken{
+        if(this.current.kind === kind){
             return this.nextToken();
         }
-        this._diagnostics.push(`ERROR: Unexpected token <${this.current.type}> expected <${type}>`);
-        return new SyntaxToken(type, this.current.position, "", null);
+        this._diagnostics.push(`ERROR: Unexpected token <${this.current.kind}> expected <${kind}>`);
+        return new SyntaxToken(kind, this.current.position, "", null);
     }
 
     public parse (): SyntaxTree{
         const expression = this.parseExpression();
-        const endOfFileToken = this.matchToken(SyntaxType.EndOfFileToken);
+        const endOfFileToken = this.matchToken(SyntaxKind.EndOfFileToken);
         return new SyntaxTree(this._diagnostics, expression, endOfFileToken);
     }
 
     private parseExpression (parentPrecedence: number = 0): ExpressionSyntax{
         let left: ExpressionSyntax;
-        const unaryOperatorPrecedence = SyntaxFacts.getUnaryOperatorPrecedence(this.current.type);
+        const unaryOperatorPrecedence = SyntaxFacts.getUnaryOperatorPrecedence(this.current.kind);
         if(unaryOperatorPrecedence !== 0 || unaryOperatorPrecedence > parentPrecedence){
             const operatorToken = this.nextToken();
             const operand = this.parsePrimaryExpression();
@@ -68,7 +68,7 @@ class Parser{
         }
 
         while(true){
-            const precedence = SyntaxFacts.getBinaryOperatorPrecedence(this.current.type);
+            const precedence = SyntaxFacts.getBinaryOperatorPrecedence(this.current.kind);
             if(precedence === 0 || precedence < parentPrecedence){
                 break;
             }
@@ -81,14 +81,21 @@ class Parser{
     }
 
     private parsePrimaryExpression (): ExpressionSyntax{
-        if(this.current.type === SyntaxType.OpenParenthesisToken){
-            const left = this.nextToken();
-            const expression = this.parseExpression();
-            const right = this.matchToken(SyntaxType.CloseParenthesisToken);
-            return new ParenthesizedExpressionSyntax(left, expression, right);
+        switch (this.current.kind) {
+            case SyntaxKind.OpenParenthesisToken:
+                const left = this.nextToken();
+                const expression = this.parseExpression();
+                const right = this.matchToken(SyntaxKind.CloseParenthesisToken);
+                return new ParenthesizedExpressionSyntax(left, expression, right);
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.FalseKeyword:
+                const keywordToken = this.nextToken();
+                const value = keywordToken.kind === SyntaxKind.TrueKeyword;
+                return new LiteralExpressionSyntax(keywordToken, value);
+            default:
+                const numberToken = this.matchToken(SyntaxKind.NumberToken);
+                return new LiteralExpressionSyntax(numberToken);
         }
-        const numberToken = this.matchToken(SyntaxType.NumberToken);
-        return new LiteralExpressionSyntax(numberToken);
     }
 
     get diagnostics (): string[]{

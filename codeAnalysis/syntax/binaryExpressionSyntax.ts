@@ -9,6 +9,6 @@ class BinaryExpressionSyntax extends ExpressionSyntax {
         this.left = left;
         this.operatorToken = operationToken;
         this.right = right;
-        this.type = SyntaxType.BinaryExpression;
+        this.kind = SyntaxKind.BinaryExpression;
     }
 }
