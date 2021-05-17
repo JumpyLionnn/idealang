@@ -1,18 +1,32 @@
 "use strict";
+class TextSpan {
+    constructor(start, length) {
+        this._start = start;
+        this._length = length;
+    }
+    get start() { return this._start; }
+    get length() { return this._length; }
+    get end() { return this._length + this._start; }
+}
 class SyntaxToken {
     constructor(kind, position, text, value) {
-        this.kind = kind;
-        this.position = position;
-        this.text = text;
+        this._kind = kind;
+        this._position = position;
+        this._text = text;
         if (value) {
-            this.value = value;
+            this._value = value;
         }
     }
+    get kind() { return this._kind; }
+    get text() { return this._text; }
+    get position() { return this._position; }
+    get value() { return this._value; }
+    get span() { return new TextSpan(this._position, this._text.length); }
 }
 class Lexer {
     constructor(text) {
         this._position = 0;
-        this._diagnostics = [];
+        this._diagnostics = new DiagnosticBag();
         this._text = text;
     }
     get currentChar() {
@@ -35,16 +49,19 @@ class Lexer {
         if (this._position >= this._text.length) {
             return new SyntaxToken(SyntaxKind.EndOfFileToken, this._position, "\0", null);
         }
+        const start = this._position;
         if (/[0-9]/.test(this.currentChar)) {
-            const start = this._position;
             while (/[0-9]/.test(this.currentChar)) {
                 this.next();
             }
             const text = this._text.substring(start, this._position);
-            return new SyntaxToken(SyntaxKind.NumberToken, start, text, parseInt(text));
+            const int = parseInt(text);
+            if (int > 2147483648 || int < -2147483648) {
+                this._diagnostics.reportInvalidNumber(new TextSpan(start, start - this._position), this._text, Type.int);
+            }
+            return new SyntaxToken(SyntaxKind.NumberToken, start, text, int);
         }
         if (/\s/.test(this.currentChar)) {
-            const start = this._position;
             while (/\s/.test(this.currentChar)) {
                 this.next();
             }
@@ -52,7 +69,6 @@ class Lexer {
             return new SyntaxToken(SyntaxKind.WhitespaceToken, start, text, null);
         }
         if (/[a-zA-Z]/.test(this.currentChar)) {
-            const start = this._position;
             while (/[a-zA-Z]/.test(this.currentChar)) {
                 this.next();
             }
@@ -75,26 +91,31 @@ class Lexer {
                 return new SyntaxToken(SyntaxKind.CloseParenthesisToken, this._position++, ")", null);
             case "&":
                 if (this.lookAhead === "&") {
-                    return new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, this._position += 2, "&&", null);
+                    this._position += 2;
+                    return new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, start, "&&", null);
                 }
                 break;
             case "|":
                 if (this.lookAhead === "|") {
-                    return new SyntaxToken(SyntaxKind.PipePipeToken, this._position += 2, "||", null);
+                    this._position += 2;
+                    return new SyntaxToken(SyntaxKind.PipePipeToken, start, "||", null);
                 }
                 break;
             case "=":
                 if (this.lookAhead === "=") {
-                    return new SyntaxToken(SyntaxKind.EqualsEqualsToken, this._position += 2, "==", null);
+                    this._position += 2;
+                    return new SyntaxToken(SyntaxKind.EqualsEqualsToken, start, "==", null);
                 }
                 break;
             case "!":
                 if (this.lookAhead === "=") {
-                    return new SyntaxToken(SyntaxKind.BangEqualsToken, this._position += 2, "!=", null);
+                    this._position += 2;
+                    return new SyntaxToken(SyntaxKind.BangEqualsToken, start, "!=", null);
                 }
-                return new SyntaxToken(SyntaxKind.BangToken, this._position++, "!", null);
+                this._position++;
+                return new SyntaxToken(SyntaxKind.BangToken, start, "!", null);
         }
-        this._diagnostics.push(`ERROR: bad character input: '${this.currentChar}'`);
+        this._diagnostics.reportBadCharacter(this._position, this.currentChar);
         return new SyntaxToken(SyntaxKind.BadToken, this._position++, this._text.charAt(this._position - 1), null);
     }
     get diagnostics() {
@@ -206,11 +227,56 @@ class ParenthesizedExpressionSyntax extends ExpressionSyntax {
         this.kind = SyntaxKind.ParenthesizedExpression;
     }
 }
+class Diagnostic {
+    constructor(span, message) {
+        this._span = span;
+        this._message = message;
+    }
+    get span() { return this._span; }
+    get message() { return this._message; }
+    toString() {
+        return this._message;
+    }
+}
+class DiagnosticBag {
+    constructor() {
+        this._diagnostics = [];
+    }
+    report(span, message) {
+        this._diagnostics.push(new Diagnostic(span, message));
+    }
+    reportInvalidNumber(span, text, type) {
+        const message = `The number ${text} isn't a valid ${type}.`;
+        this.report(span, message);
+    }
+    reportBadCharacter(position, character) {
+        const message = `Bad character input: '${character}'.`;
+        this.report(new TextSpan(position, 1), message);
+    }
+    reportUnexpectedToken(span, actualKind, expectedKind) {
+        const message = `Unexpected token <${actualKind}> expected <${expectedKind}>.`;
+        this.report(span, message);
+    }
+    reportUndefinedUnaryOperator(span, operatorText, operandType) {
+        const message = `Unary operator '${operatorText}' is not defined for type ${operandType}.`;
+        this.report(span, message);
+    }
+    reportUndefinedBinaryOperator(span, operatorText, leftType, rightType) {
+        const message = `Binary operator '${operatorText}' is not defined for type ${leftType} and ${rightType}.`;
+        this.report(span, message);
+    }
+    add(diagnostics) {
+        this._diagnostics.push(...diagnostics._diagnostics);
+    }
+    toArray() {
+        return this._diagnostics;
+    }
+}
 class Parser {
     constructor(text) {
         this._tokens = [];
         this._position = 0;
-        this._diagnostics = [];
+        this._diagnostics = new DiagnosticBag();
         const lexer = new Lexer(text);
         let token = new SyntaxToken(SyntaxKind.WhitespaceToken, 0, "", null);
         while (token.kind !== SyntaxKind.EndOfFileToken) {
@@ -219,7 +285,7 @@ class Parser {
                 this._tokens.push(token);
             }
         }
-        this._diagnostics.push(...lexer.diagnostics);
+        this._diagnostics.add(lexer.diagnostics);
     }
     peek(offset) {
         const index = this._position + offset;
@@ -240,13 +306,13 @@ class Parser {
         if (this.current.kind === kind) {
             return this.nextToken();
         }
-        this._diagnostics.push(`ERROR: Unexpected token <${this.current.kind}> expected <${kind}>`);
+        this._diagnostics.reportUnexpectedToken(this.current.span, this.current.kind, kind);
         return new SyntaxToken(kind, this.current.position, "", null);
     }
     parse() {
         const expression = this.parseExpression();
         const endOfFileToken = this.matchToken(SyntaxKind.EndOfFileToken);
-        return new SyntaxTree(this._diagnostics, expression, endOfFileToken);
+        return new SyntaxTree(this._diagnostics.toArray(), expression, endOfFileToken);
     }
     parseExpression(parentPrecedence = 0) {
         let left;
@@ -293,10 +359,13 @@ class Parser {
 }
 class SyntaxTree {
     constructor(diagnostics, root, endOfFileToken) {
-        this.root = root;
-        this.endOfFileToken = endOfFileToken;
-        this.diagnostics = diagnostics;
+        this._root = root;
+        this._endOfFileToken = endOfFileToken;
+        this._diagnostics = diagnostics;
     }
+    get root() { return this._root; }
+    get endOfFileToken() { return this._endOfFileToken; }
+    get diagnostics() { return this._diagnostics; }
     static parse(text) {
         const parser = new Parser(text);
         return parser.parse();
@@ -372,6 +441,34 @@ class Evaluator {
             }
         }
         throw new Error(`Unexpected node ${node.kind}`);
+    }
+}
+class EvaluationResult {
+    constructor(diagnostics, value) {
+        this._diagnostics = diagnostics;
+        if (value) {
+            this._value = value;
+        }
+    }
+    get diagnostics() { return this._diagnostics; }
+    get value() { return this._value; }
+}
+class Compilation {
+    constructor(syntax) {
+        this._syntax = syntax;
+    }
+    get syntax() { return this._syntax; }
+    evaluate() {
+        const binder = new Binder();
+        const boundExpression = binder.bindExpression(this._syntax.root);
+        const diagnostics = this._syntax.diagnostics;
+        diagnostics.push(...binder.diagnostics.toArray());
+        if (diagnostics.length > 0) {
+            return new EvaluationResult(diagnostics);
+        }
+        const evaluator = new Evaluator(boundExpression);
+        const value = evaluator.evaluate();
+        return new EvaluationResult([], value);
     }
 }
 var Type;
@@ -492,7 +589,7 @@ BoundUnaryOperator._operators = [
 ];
 class Binder {
     constructor() {
-        this._diagnostics = [];
+        this._diagnostics = new DiagnosticBag();
     }
     get diagnostics() { return this._diagnostics; }
     bindExpression(syntax) {
@@ -523,7 +620,7 @@ class Binder {
         const boundOperand = this.bindExpression(syntax.operand);
         const boundOperator = BoundUnaryOperator.bind(syntax.operatorToken.kind, boundOperand.type);
         if (boundOperator === null) {
-            this._diagnostics.push(`Unary operator '${syntax.operatorToken.text}' is not defined for type ${boundOperand.type}.`);
+            this._diagnostics.reportUndefinedUnaryOperator(syntax.operatorToken.span, syntax.operatorToken.text, boundOperand.type);
             return boundOperand;
         }
         return new BoundUnaryExpression(boundOperator, boundOperand);
@@ -533,25 +630,42 @@ class Binder {
         const boundRight = this.bindExpression(syntax.right);
         const boundOperator = BoundBinaryOperator.bind(syntax.operatorToken.kind, boundLeft.type, boundRight.type);
         if (boundOperator === null) {
-            this._diagnostics.push(`Binary operator '${syntax.operatorToken.text}' is not defined for type ${boundLeft.type} and ${boundRight.type}.`);
+            this._diagnostics.reportUndefinedBinaryOperator(syntax.operatorToken.span, syntax.operatorToken.text, boundLeft.type, boundRight.type);
             return boundLeft;
         }
         return new BoundBinaryExpression(boundLeft, boundOperator, boundRight);
     }
 }
 const fs = require("fs");
-const code = fs.readFileSync("./input.txt").toString();
-const syntaxTree = SyntaxTree.parse(code);
-const binder = new Binder();
-const boundExpression = binder.bindExpression(syntaxTree.root);
-const diagnostics = syntaxTree.diagnostics.push(...binder.diagnostics);
-if (syntaxTree.diagnostics.length > 0) {
-    for (let i = 0; i < syntaxTree.diagnostics.length; i++) {
-        console.error(syntaxTree.diagnostics[i]);
-    }
+const readline = require("readline");
+const rl = readline.createInterface({
+    "input": process.stdin,
+    "output": process.stdout
+});
+function input() {
+    rl.question(">>>", (line) => {
+        const syntaxTree = SyntaxTree.parse(line);
+        const compilation = new Compilation(syntaxTree);
+        const result = compilation.evaluate();
+        const diagnostics = result.diagnostics;
+        if (diagnostics.length > 0) {
+            for (let i = 0; i < diagnostics.length; i++) {
+                console.log(diagnostics[i].span);
+                console.error(getErrorText(diagnostics[i], line));
+                console.log();
+            }
+        }
+        else {
+            console.log(result.value);
+        }
+        input();
+    });
 }
-else {
-    const evaluator = new Evaluator(boundExpression);
-    const result = evaluator.evaluate();
-    console.log(result);
+input();
+function getErrorText(diagnostic, line) {
+    let text = "ERROR: " + diagnostic.toString() + "\n";
+    text += line + "\n";
+    text += " ".repeat(diagnostic.span.start);
+    text += "^".repeat(diagnostic.span.length);
+    return text;
 }

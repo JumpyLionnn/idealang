@@ -6,9 +6,9 @@
 
 
 class Binder {
-    private readonly _diagnostics: string[] = [];
+    private readonly _diagnostics: DiagnosticBag = new DiagnosticBag();
 
-    public get diagnostics (): string[]{return this._diagnostics;}
+    public get diagnostics (): DiagnosticBag{return this._diagnostics;}
 
     public bindExpression (syntax: ExpressionSyntax): BoundExpression{
         switch (syntax.kind) {
@@ -40,7 +40,7 @@ class Binder {
         const boundOperand = this.bindExpression(syntax.operand);
         const boundOperator = BoundUnaryOperator.bind(syntax.operatorToken.kind, boundOperand.type);
         if(boundOperator === null){
-            this._diagnostics.push(`Unary operator '${syntax.operatorToken.text}' is not defined for type ${boundOperand.type}.`);
+            this._diagnostics.reportUndefinedUnaryOperator(syntax.operatorToken.span, syntax.operatorToken.text, boundOperand.type);
             return boundOperand;
         }
         return new BoundUnaryExpression(boundOperator, boundOperand);
@@ -51,7 +51,7 @@ class Binder {
         const boundOperator = BoundBinaryOperator.bind(syntax.operatorToken.kind, boundLeft.type, boundRight.type);
 
         if(boundOperator === null){
-            this._diagnostics.push(`Binary operator '${syntax.operatorToken.text}' is not defined for type ${boundLeft.type} and ${boundRight.type}.`);
+            this._diagnostics.reportUndefinedBinaryOperator(syntax.operatorToken.span, syntax.operatorToken.text, boundLeft.type, boundRight.type);
             return boundLeft;
         }
 

@@ -1,0 +1,25 @@
+/// <reference path="./evaluator.ts"/>
+/// <reference path="./evaluationResult.ts"/>
+
+class Compilation {
+    private _syntax: SyntaxTree;
+    constructor (syntax: SyntaxTree) {
+        this._syntax = syntax;
+    }
+    public get syntax (): SyntaxTree{return this._syntax;}
+
+    public evaluate (): EvaluationResult{
+        const binder = new Binder();
+        const boundExpression = binder.bindExpression(this._syntax.root);
+
+        const diagnostics = this._syntax.diagnostics;
+        diagnostics.push(...binder.diagnostics.toArray());
+        if(diagnostics.length > 0){
+            return new EvaluationResult(diagnostics);
+        }
+
+        const evaluator = new Evaluator(boundExpression);
+        const value = evaluator.evaluate();
+        return new EvaluationResult([], value);
+    }
+}

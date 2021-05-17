@@ -29,7 +29,7 @@ function input (){
 
         if(diagnostics.length > 0){
             for(let i =0; i < diagnostics.length; i++){
-                console.log(diagnostics[i].span);3
+                console.log(diagnostics[i].span);
                 console.error(getErrorText(diagnostics[i], line));
                 console.log();
             }

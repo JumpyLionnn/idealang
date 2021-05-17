@@ -4,11 +4,12 @@
 /// <reference path="literalExpressionSyntax.ts"/>
 /// <reference path="binaryExpressionSyntax.ts"/>
 /// <reference path="parenthesizedExpressionSyntax.ts"/>
+/// <reference path="../diagnosticBag.ts"/>
 
 class Parser{
     private _tokens: SyntaxToken[] = [];
     private _position: number = 0;
-    private _diagnostics: string[] = [];
+    private _diagnostics: DiagnosticBag = new DiagnosticBag() ;
     public constructor (text: string){
 
         const lexer = new Lexer(text);
@@ -20,7 +21,7 @@ class Parser{
                 this._tokens.push(token);
             }
         }
-        this._diagnostics.push(...lexer.diagnostics);
+        this._diagnostics.add(lexer.diagnostics);
     }
 
     private peek (offset: number): SyntaxToken{
@@ -45,14 +46,14 @@ class Parser{
         if(this.current.kind === kind){
             return this.nextToken();
         }
-        this._diagnostics.push(`ERROR: Unexpected token <${this.current.kind}> expected <${kind}>`);
+        this._diagnostics.reportUnexpectedToken(this.current.span, this.current.kind, kind);
         return new SyntaxToken(kind, this.current.position, "", null);
     }
 
     public parse (): SyntaxTree{
         const expression = this.parseExpression();
         const endOfFileToken = this.matchToken(SyntaxKind.EndOfFileToken);
-        return new SyntaxTree(this._diagnostics, expression, endOfFileToken);
+        return new SyntaxTree(this._diagnostics.toArray(), expression, endOfFileToken);
     }
 
     private parseExpression (parentPrecedence: number = 0): ExpressionSyntax{
@@ -98,7 +99,7 @@ class Parser{
         }
     }
 
-    get diagnostics (): string[]{
+    get diagnostics (): DiagnosticBag{
         return this._diagnostics;
     }
 
