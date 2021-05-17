@@ -1,31 +1,57 @@
-/// <reference path="./codeAnalysis/syntax/syntaxTree.ts" />
-/// <reference path="./codeAnalysis/evaluator.ts" />
-/// <reference path="./codeAnalysis/binding/binder.ts" />
+/// <reference path="./idealang/codeAnalysis/syntax/syntaxTree.ts" />
+/// <reference path="./idealang/codeAnalysis/compilation.ts" />
+/// <reference path="./idealang/codeAnalysis/binding/binder.ts" />
 
 const fs = require("fs");
+const readline = require("readline");
+
+const rl = readline.createInterface({
+    "input": process.stdin,
+    "output": process.stdout
+});
 
 
-const code = fs.readFileSync("./input.txt").toString();
+//const code = fs.readFileSync("./input.txt").toString();
 
 
-const syntaxTree = SyntaxTree.parse(code);
 
-const binder = new Binder();
+function input (){
+    rl.question(">>>", (line: string) => {
+        const syntaxTree = SyntaxTree.parse(line);
 
-const boundExpression = binder.bindExpression(syntaxTree.root);
+        const compilation = new Compilation(syntaxTree);
 
-const diagnostics = syntaxTree.diagnostics.push(...binder.diagnostics);
+        const result = compilation.evaluate();
 
-//console.log(syntaxTree.root);
+        const diagnostics = result.diagnostics;
 
+        //console.log(syntaxTree.root);
 
-if(syntaxTree.diagnostics.length > 0){
-    for(let i =0; i < syntaxTree.diagnostics.length; i++){
-        console.error(syntaxTree.diagnostics[i]);
-    }
+        if(diagnostics.length > 0){
+            for(let i =0; i < diagnostics.length; i++){
+                console.log(diagnostics[i].span);3
+                console.error(getErrorText(diagnostics[i], line));
+                console.log();
+            }
+        }
+        else{
+            console.log(result.value);
+        }
+        input();
+    });
 }
-else{
-    const evaluator = new Evaluator(boundExpression);
-    const result = evaluator.evaluate();
-    console.log(result);
+
+input();
+
+
+function getErrorText (diagnostic: Diagnostic, line: string): string{
+    let text = "ERROR: " + diagnostic.toString() + "\n";
+    text += line + "\n";
+
+    text += " ".repeat(diagnostic.span.start);
+    text += "^".repeat(diagnostic.span.length);
+
+    return text;
 }
+
+
