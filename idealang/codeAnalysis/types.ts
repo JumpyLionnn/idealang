@@ -28,3 +28,6 @@ namespace Type {
 
 
 }
+
+
+type VariablesMap = Map<VariableSymbol, all | null>;

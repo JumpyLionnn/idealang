@@ -14,7 +14,7 @@ const rl = readline.createInterface({
 
 //const code = fs.readFileSync("./input.txt").toString();
 
-const variables: {[name: string]: all} = {};
+const variables: Map<VariableSymbol, all> = new Map();
 
 
 function input (){
@@ -26,8 +26,6 @@ function input (){
         const result = compilation.evaluate(variables);
 
         const diagnostics = result.diagnostics;
-
-        console.log(syntaxTree.root);
 
         if(diagnostics.length > 0){
             for(let i =0; i < diagnostics.length; i++){

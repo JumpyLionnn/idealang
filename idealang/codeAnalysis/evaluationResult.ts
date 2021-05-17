@@ -4,7 +4,7 @@ class EvaluationResult {
     private _value: all;
     constructor (diagnostics: Diagnostic[], value?: all) {
         this._diagnostics = diagnostics;
-        if(value){
+        if(value !== undefined){
             this._value = value;
         }
     }

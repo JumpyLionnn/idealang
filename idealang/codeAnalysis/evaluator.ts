@@ -3,8 +3,8 @@
 
 class Evaluator {
     private readonly _root: BoundExpression;
-    private readonly _variables: {[name: string]: all};
-    constructor (root: BoundExpression, variables: {[name: string]: all}) {
+    private readonly _variables: VariablesMap;
+    constructor (root: BoundExpression, variables: VariablesMap) {
         this._root = root;
         this._variables = variables;
     }
@@ -20,13 +20,13 @@ class Evaluator {
         }
 
         if(node instanceof BoundVariableExpression){
-            const value = this._variables[node.name];
+            const value = this._variables.get(node.variable) as all;
             return value;
         }
 
         if(node instanceof BoundAssignmentExpression){
             const value = this.evaluateExpression(node.expression);
-            this._variables[node.name] = value;
+            this._variables.set(node.variable, value);
             return value;
         }
 

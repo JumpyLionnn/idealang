@@ -431,12 +431,12 @@ class Evaluator {
             return node.value;
         }
         if (node instanceof BoundVariableExpression) {
-            const value = this._variables[node.name];
+            const value = this._variables.get(node.variable);
             return value;
         }
         if (node instanceof BoundAssignmentExpression) {
             const value = this.evaluateExpression(node.expression);
-            this._variables[node.name] = value;
+            this._variables.set(node.variable, value);
             return value;
         }
         if (node instanceof BoundUnaryExpression) {
@@ -482,7 +482,7 @@ class Evaluator {
 class EvaluationResult {
     constructor(diagnostics, value) {
         this._diagnostics = diagnostics;
-        if (value) {
+        if (value !== undefined) {
             this._value = value;
         }
     }
@@ -664,22 +664,23 @@ class Binder {
     }
     bindNameExpression(syntax) {
         const name = syntax.identifierToken.text;
-        if (!this._variables[name]) {
+        const variable = getMapKey(this._variables, (v) => v.name === name);
+        if (!variable) {
             this._diagnostics.reportUndefinedName(syntax.identifierToken.span, name);
             return new BoundLiteralExpression(0);
         }
-        const type = Type.getType(this._variables[name]);
-        return new BoundVariableExpression(name, type);
+        return new BoundVariableExpression(variable);
     }
     bindAssignmentExpression(syntax) {
         const name = syntax.identifierToken.text;
         const boundExpression = this.bindExpression(syntax.expression);
-        const defaultValue = boundExpression.type === Type.int ? 0 : boundExpression.type === Type.boolean ? false : null;
-        if (defaultValue === null) {
-            throw new Error(`Unsupported variable type: ${boundExpression.type}`);
+        const existingVariable = getMapKey(this._variables, (v) => v.name === name);
+        if (existingVariable) {
+            this._variables.delete(existingVariable);
         }
-        this._variables[name] = defaultValue;
-        return new BoundAssignmentExpression(name, boundExpression);
+        const variable = new VariableSymbol(name, boundExpression.type);
+        this._variables.set(variable, null);
+        return new BoundAssignmentExpression(variable, boundExpression);
     }
     bindUnaryExpression(syntax) {
         const boundOperand = this.bindExpression(syntax.operand);
@@ -708,14 +709,13 @@ const rl = readline.createInterface({
     "output": process.stdout,
     "terminal": false
 });
-const variables = {};
+const variables = new Map();
 function input() {
     rl.question(">>>", (line) => {
         const syntaxTree = SyntaxTree.parse(line);
         const compilation = new Compilation(syntaxTree);
         const result = compilation.evaluate(variables);
         const diagnostics = result.diagnostics;
-        console.log(syntaxTree.root);
         if (diagnostics.length > 0) {
             for (let i = 0; i < diagnostics.length; i++) {
                 console.error(getErrorText(diagnostics[i], line));
@@ -745,24 +745,24 @@ class VariableSymbol {
     get type() { return this._type; }
 }
 class BoundAssignmentExpression extends BoundExpression {
-    constructor(name, expression) {
+    constructor(variable, expression) {
         super();
-        this._name = name;
+        this._variable = variable;
         this._expression = expression;
         this.kind = BoundNodeKind.AssignmentExpression;
         this.type = expression.type;
     }
-    get name() { return this._name; }
+    get variable() { return this._variable; }
     get expression() { return this._expression; }
 }
 class BoundVariableExpression extends BoundExpression {
-    constructor(name, type) {
+    constructor(variable) {
         super();
-        this._name = name;
+        this._variable = variable;
         this.kind = BoundNodeKind.VariableExpression;
-        this.type = type;
+        this.type = variable.type;
     }
-    get name() { return this._name; }
+    get variable() { return this._variable; }
 }
 class AssignmentExpressionSyntax extends ExpressionSyntax {
     constructor(identifierToken, equalsToken, expression) {
@@ -790,5 +790,12 @@ class NameExpressionSyntax extends ExpressionSyntax {
     }
     get identifierToken() {
         return this._identifierToken;
+    }
+}
+function getMapKey(map, checker) {
+    for (const [key, value] of map) {
+        if (checker(key)) {
+            return key;
+        }
     }
 }

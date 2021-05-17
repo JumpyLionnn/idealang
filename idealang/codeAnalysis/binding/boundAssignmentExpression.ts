@@ -1,15 +1,15 @@
 
 class BoundAssignmentExpression extends BoundExpression {
-    private _name: string;
+    private _variable: VariableSymbol;
     private _expression: BoundExpression;
-    constructor (name: string, expression: BoundExpression) {
+    constructor (variable: VariableSymbol, expression: BoundExpression) {
         super();
-        this._name = name;
+        this._variable = variable;
         this._expression = expression;
         this.kind = BoundNodeKind.AssignmentExpression;
         this.type = expression.type;
     }
 
-    public get name (): string{return this._name;}
+    public get variable (): VariableSymbol{return this._variable;}
     public get expression (): BoundExpression{return this._expression;}
 }

@@ -6,9 +6,9 @@
 
 class Binder {
     private readonly _diagnostics: DiagnosticBag = new DiagnosticBag();
-    private readonly _variables: {[name: string]: all};
+    private readonly _variables:  VariablesMap;
 
-    constructor (variables: {[name: string]: all}){
+    constructor (variables: VariablesMap){
         this._variables = variables;
     }
 
@@ -50,27 +50,27 @@ class Binder {
 
     private bindNameExpression (syntax: NameExpressionSyntax): BoundExpression{
         const name = syntax.identifierToken.text;
-        if(!this._variables[name]){
+        const variable = getMapKey(this._variables, (v) => v.name === name);
+        if(!variable){
             this._diagnostics.reportUndefinedName(syntax.identifierToken.span, name);
             return new BoundLiteralExpression(0);
         }
-        const type = Type.getType(this._variables[name]);
-        return new BoundVariableExpression(name, type);
+        return new BoundVariableExpression(variable);
     }
 
     private bindAssignmentExpression (syntax: AssignmentExpressionSyntax): BoundExpression{
         const name = syntax.identifierToken.text;
         const boundExpression = this.bindExpression(syntax.expression);
 
-        const defaultValue = boundExpression.type === Type.int ? 0 : boundExpression.type === Type.boolean ? false : null;
-
-        if(defaultValue === null){
-            throw new Error(`Unsupported variable type: ${boundExpression.type}`);
+        const existingVariable = getMapKey(this._variables, (v) => v.name === name);
+        if(existingVariable){
+            this._variables.delete(existingVariable);
         }
 
-        this._variables[name] = defaultValue;
+        const variable = new VariableSymbol(name, boundExpression.type);
+        this._variables.set(variable, null);
 
-        return new BoundAssignmentExpression(name, boundExpression);
+        return new BoundAssignmentExpression(variable, boundExpression);
     }
 
     private bindUnaryExpression (syntax: UnaryExpressionSyntax): BoundExpression{

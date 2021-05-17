@@ -1,11 +1,11 @@
 class BoundVariableExpression extends BoundExpression {
-    private _name: string;
-    constructor (name: string, type: Type) {
+    private _variable: VariableSymbol;
+    constructor (variable: VariableSymbol) {
         super();
-        this._name = name;
+        this._variable = variable;
         this.kind = BoundNodeKind.VariableExpression;
-        this.type = type;
+        this.type = variable.type;
     }
 
-    public get name (): string{return this._name;}
+    public get variable (): VariableSymbol{return this._variable;}
 }
