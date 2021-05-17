@@ -7,12 +7,14 @@ const readline = require("readline");
 
 const rl = readline.createInterface({
     "input": process.stdin,
-    "output": process.stdout
+    "output": process.stdout,
+    "terminal": false
 });
 
 
 //const code = fs.readFileSync("./input.txt").toString();
 
+const variables: {[name: string]: all} = {};
 
 
 function input (){
@@ -21,15 +23,14 @@ function input (){
 
         const compilation = new Compilation(syntaxTree);
 
-        const result = compilation.evaluate();
+        const result = compilation.evaluate(variables);
 
         const diagnostics = result.diagnostics;
 
-        //console.log(syntaxTree.root);
+        console.log(syntaxTree.root);
 
         if(diagnostics.length > 0){
             for(let i =0; i < diagnostics.length; i++){
-                console.log(diagnostics[i].span);
                 console.error(getErrorText(diagnostics[i], line));
                 console.log();
             }

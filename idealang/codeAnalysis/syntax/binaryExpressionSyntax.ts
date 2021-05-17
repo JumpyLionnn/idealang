@@ -1,5 +1,8 @@
 /// <reference path="expressionSyntax.ts"/>
 
+
+
+
 class BinaryExpressionSyntax extends ExpressionSyntax {
     public left: ExpressionSyntax;
     public operatorToken: SyntaxToken;

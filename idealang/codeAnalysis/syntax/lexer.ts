@@ -94,7 +94,10 @@ class Lexer{
                     this._position += 2;
                     return new SyntaxToken(SyntaxKind.EqualsEqualsToken, start, "==", null);
                 }
-                break;
+                else{
+                    this._position++;
+                    return new SyntaxToken(SyntaxKind.EqualsToken, start, "=", null);
+                }
             case "!":
                 if(this.lookAhead === "="){
                     this._position += 2;

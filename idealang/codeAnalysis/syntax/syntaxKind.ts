@@ -10,6 +10,7 @@ enum SyntaxKind{
     StarToken = "StarToken",
     SlashToken = "SlashToken",
     BangToken = "BangToken",
+    EqualsToken = "EqualsToken",
     AmpersandAmpersandToken = "AmpersandAmpersandToken",
     PipePipeToken = "PipePipeToken",
     EqualsEqualsToken = "EqualsEqualsToken",
@@ -24,6 +25,8 @@ enum SyntaxKind{
 
     // expressions
     LiteralExpression = "LiteralExpression",
+    NameExpression = "NameExpression",
+    AssignmentExpression = "AssignmentExpression",
     BinaryExpression = "BinaryExpression",
     UnaryExpression = "UnaryExpression",
     ParenthesizedExpression = "ParenthesizedExpression"

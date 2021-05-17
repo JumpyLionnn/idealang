@@ -8,8 +8,8 @@ class Compilation {
     }
     public get syntax (): SyntaxTree{return this._syntax;}
 
-    public evaluate (): EvaluationResult{
-        const binder = new Binder();
+    public evaluate (variables: {[name: string]: all}): EvaluationResult{
+        const binder = new Binder(variables);
         const boundExpression = binder.bindExpression(this._syntax.root);
 
         const diagnostics = this._syntax.diagnostics;
@@ -18,7 +18,7 @@ class Compilation {
             return new EvaluationResult(diagnostics);
         }
 
-        const evaluator = new Evaluator(boundExpression);
+        const evaluator = new Evaluator(boundExpression, variables);
         const value = evaluator.evaluate();
         return new EvaluationResult([], value);
     }

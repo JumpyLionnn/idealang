@@ -32,6 +32,11 @@ class DiagnosticBag{
         this.report(span, message);
     }
 
+    public reportUndefinedName (span: TextSpan, name: string){
+        const message = `Variable '${name}' doesn't exist.`;
+        this.report(span, message);
+    }
+
     public add (diagnostics: DiagnosticBag){
         this._diagnostics.push(...diagnostics._diagnostics);
     }

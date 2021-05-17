@@ -1,4 +1,3 @@
-
 class TextSpan {
     private _start: number;
     private _length: number;

@@ -2,9 +2,11 @@
 ///<reference path="binding/boundUnaryExpression.ts" />
 
 class Evaluator {
-    private _root: BoundExpression;
-    constructor (root: BoundExpression) {
+    private readonly _root: BoundExpression;
+    private readonly _variables: {[name: string]: all};
+    constructor (root: BoundExpression, variables: {[name: string]: all}) {
         this._root = root;
+        this._variables = variables;
     }
 
     public evaluate (): all{
@@ -15,6 +17,17 @@ class Evaluator {
 
         if(node instanceof BoundLiteralExpression){
             return node.value;
+        }
+
+        if(node instanceof BoundVariableExpression){
+            const value = this._variables[node.name];
+            return value;
+        }
+
+        if(node instanceof BoundAssignmentExpression){
+            const value = this.evaluateExpression(node.expression);
+            this._variables[node.name] = value;
+            return value;
         }
 
         if(node instanceof BoundUnaryExpression){
