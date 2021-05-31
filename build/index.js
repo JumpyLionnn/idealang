@@ -396,6 +396,18 @@ class SyntaxTree {
         const parser = new Parser(text);
         return parser.parse();
     }
+    static parseTokens(text) {
+        const lexer = new Lexer(text);
+        const tokens = [];
+        while (true) {
+            const token = lexer.nextToken();
+            if (token.kind === SyntaxKind.EndOfFileToken) {
+                break;
+            }
+            tokens.push(token);
+        }
+        return tokens;
+    }
 }
 class UnaryExpressionSyntax extends ExpressionSyntax {
     constructor(operationToken, operand) {
@@ -702,40 +714,88 @@ class Binder {
         return new BoundBinaryExpression(boundLeft, boundOperator, boundRight);
     }
 }
-const fs = require("fs");
-const readline = require("readline");
-const rl = readline.createInterface({
-    "input": process.stdin,
-    "output": process.stdout,
-    "terminal": false
-});
-const variables = new Map();
-function input() {
-    rl.question(">>>", (line) => {
-        const syntaxTree = SyntaxTree.parse(line);
-        const compilation = new Compilation(syntaxTree);
-        const result = compilation.evaluate(variables);
-        const diagnostics = result.diagnostics;
-        if (diagnostics.length > 0) {
-            for (let i = 0; i < diagnostics.length; i++) {
-                console.error(getErrorText(diagnostics[i], line));
-                console.log();
+class Tests {
+    static describe(name, test) {
+        this.tests.push({
+            "description": new TestDescription(name),
+            "executor": test
+        });
+    }
+    static execute() {
+        const startTime = Date.now();
+        for (let i = 0; i < this.tests.length; i++) {
+            const test = this.tests[i];
+            test.executor(test.description);
+        }
+        this.duration = (Date.now() - startTime) / 1000;
+    }
+    static showResults() {
+        let testsNumber = 0;
+        let testsPassed = 0;
+        let testsFailed = 0;
+        let errors = "";
+        for (let i = 0; i < this.tests.length; i++) {
+            const test = this.tests[i].description;
+            testsNumber += test.tests;
+            testsPassed += test.passed;
+            testsFailed += test.failed;
+            for (let j = 0; j < test.faliedMessages.length; j++) {
+                errors += test.faliedMessages[j] + "\n";
             }
         }
-        else {
-            console.log(result.value);
+        console.error("%c" + errors, "color:red;");
+        console.log(`Total tests: ${testsNumber} Passed: ${testsPassed} Failed: ${testsFailed}`);
+        if (testsFailed > 0) {
+            console.error("%cTest Run Failed", "color:red;");
         }
-        input();
-    });
+        else {
+            console.error("%cTest Run Successful", "color:green;");
+        }
+        console.log(`Test execution time: ${this.duration}s`);
+    }
 }
-input();
-function getErrorText(diagnostic, line) {
-    let text = "ERROR: " + diagnostic.toString() + "\n";
-    text += line + "\n";
-    text += " ".repeat(diagnostic.span.start);
-    text += "^".repeat(diagnostic.span.length);
-    return text;
+Tests.tests = [];
+class TestDescription {
+    constructor(name) {
+        this._tests = 0;
+        this._passed = 0;
+        this._failed = 0;
+        this._faliedMessages = [];
+        this._name = name;
+    }
+    equal(expectedData, actualData) {
+        this._tests++;
+        if (actualData === expectedData) {
+            this._passed++;
+        }
+        else {
+            this._failed++;
+            this._faliedMessages.push(`Failed  ${this._name}
+Expected: ${expectedData}
+Actual: ${actualData}`);
+        }
+    }
+    get name() {
+        return this._name;
+    }
+    get tests() {
+        return this._tests;
+    }
+    get passed() {
+        return this._passed;
+    }
+    get failed() {
+        return this._failed;
+    }
+    get faliedMessages() {
+        return this._faliedMessages;
+    }
 }
+Tests.execute();
+setTimeout(() => {
+    Tests.execute();
+    Tests.showResults();
+}, 100);
 class VariableSymbol {
     constructor(name, type) {
         this._name = name;
@@ -798,4 +858,115 @@ function getMapKey(map, checker) {
             return key;
         }
     }
+}
+const lexerTokens = [
+    [SyntaxKind.NumberToken, "1"],
+    [SyntaxKind.NumberToken, "123"],
+    [SyntaxKind.PlusToken, "+"],
+    [SyntaxKind.MinusToken, "-"],
+    [SyntaxKind.StarToken, "*"],
+    [SyntaxKind.SlashToken, "/"],
+    [SyntaxKind.BangToken, "!"],
+    [SyntaxKind.EqualsToken, "="],
+    [SyntaxKind.AmpersandAmpersandToken, "&&"],
+    [SyntaxKind.PipePipeToken, "||"],
+    [SyntaxKind.EqualsEqualsToken, "=="],
+    [SyntaxKind.BangEqualsToken, "!="],
+    [SyntaxKind.OpenParenthesisToken, "("],
+    [SyntaxKind.CloseParenthesisToken, ")"],
+    [SyntaxKind.IdentifierToken, "a"],
+    [SyntaxKind.IdentifierToken, "abc"],
+    [SyntaxKind.FalseKeyword, "false"],
+    [SyntaxKind.TrueKeyword, "true"]
+];
+const lexerSeperatorsTokens = [
+    [SyntaxKind.WhitespaceToken, " "],
+    [SyntaxKind.WhitespaceToken, "  "],
+    [SyntaxKind.WhitespaceToken, "\r"],
+    [SyntaxKind.WhitespaceToken, "\n"],
+    [SyntaxKind.WhitespaceToken, "\r\n"]
+];
+Tests.describe("seperated pairs lexer token test", (assert) => {
+    for (let i = 0; i < lexerTokens.length; i++) {
+        const t1Kind = lexerTokens[i][0];
+        const t1Text = lexerTokens[i][1];
+        for (let j = 0; j < lexerTokens.length; j++) {
+            const t2Kind = lexerTokens[j][0];
+            const t2Text = lexerTokens[j][1];
+            if (!requiresSeperator(t1Kind, t2Kind)) {
+                for (let k = 0; k < lexerSeperatorsTokens.length; k++) {
+                    const seperatorKind = lexerSeperatorsTokens[k][0];
+                    const seperatorText = lexerSeperatorsTokens[k][1];
+                    const tokens = SyntaxTree.parseTokens(t1Text + seperatorText + t2Text);
+                    assert.equal(3, tokens.length);
+                    assert.equal(t1Kind, tokens[0].kind);
+                    assert.equal(t1Text, tokens[0].text);
+                    assert.equal(seperatorKind, tokens[1].kind);
+                    assert.equal(seperatorText, tokens[1].text);
+                    assert.equal(t2Kind, tokens[2].kind);
+                    assert.equal(t2Text, tokens[2].text);
+                }
+            }
+        }
+    }
+});
+Tests.describe("single lexer token test", (assert) => {
+    const tokens = [];
+    tokens.push(...lexerTokens);
+    tokens.push(...lexerSeperatorsTokens);
+    for (let i = 0; i < tokens.length; i++) {
+        const token = SyntaxTree.parseTokens(tokens[i][1])[0];
+        assert.equal(tokens[i][0], token.kind);
+        assert.equal(tokens[i][1], token.text);
+    }
+});
+Tests.describe("pairs lexer token test", (assert) => {
+    for (let i = 0; i < lexerTokens.length; i++) {
+        const t1Kind = lexerTokens[i][0];
+        const t1Text = lexerTokens[i][1];
+        for (let j = 0; j < lexerTokens.length; j++) {
+            const t2Kind = lexerTokens[j][0];
+            const t2Text = lexerTokens[j][1];
+            if (!requiresSeperator(t1Kind, t2Kind)) {
+                const tokens = SyntaxTree.parseTokens(t1Text + t2Text);
+                assert.equal(2, tokens.length);
+                assert.equal(t1Kind, tokens[0].kind);
+                assert.equal(t1Text, tokens[0].text);
+                assert.equal(t2Kind, tokens[1].kind);
+                assert.equal(t2Text, tokens[1].text);
+            }
+        }
+    }
+});
+function requiresSeperator(t1Kind, t2Kind) {
+    const t1IsKeyword = t1Kind.endsWith("Keyword");
+    const t2IsKeyword = t2Kind.endsWith("Keyword");
+    if (t1Kind === SyntaxKind.IdentifierToken && t2Kind === SyntaxKind.IdentifierToken) {
+        return true;
+    }
+    if (t1IsKeyword && t2IsKeyword) {
+        return true;
+    }
+    if (t1IsKeyword && t2Kind === SyntaxKind.IdentifierToken) {
+        return true;
+    }
+    if (t1Kind === SyntaxKind.IdentifierToken && t2IsKeyword) {
+        return true;
+    }
+    if (t1Kind === SyntaxKind.NumberToken && t2Kind === SyntaxKind.NumberToken) {
+        return true;
+    }
+    if (t1Kind === SyntaxKind.BangToken && t2Kind === SyntaxKind.EqualsToken) {
+        return true;
+    }
+    if (t1Kind === SyntaxKind.BangToken && t2Kind === SyntaxKind.EqualsEqualsToken) {
+        return true;
+    }
+    if (t1Kind === SyntaxKind.EqualsToken && t2Kind === SyntaxKind.EqualsToken) {
+        return true;
+    }
+    if (t1Kind === SyntaxKind.EqualsToken && t2Kind === SyntaxKind.EqualsEqualsToken) {
+        return true;
+    }
+    return false;
 }

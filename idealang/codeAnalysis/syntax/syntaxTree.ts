@@ -18,4 +18,17 @@ class SyntaxTree {
         const parser = new Parser(text);
         return parser.parse();
     }
+
+    public static parseTokens (text: string): SyntaxToken[]{
+        const lexer = new Lexer(text);
+        const tokens: SyntaxToken[] = [];
+        while(true){
+            const token = lexer.nextToken();
+            if(token.kind === SyntaxKind.EndOfFileToken){
+                break;
+            }
+            tokens.push(token);
+        }
+        return tokens;
+    }
 }

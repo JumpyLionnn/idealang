@@ -1,8 +1,9 @@
 /// <reference path="./idealang/codeAnalysis/syntax/syntaxTree.ts" />
 /// <reference path="./idealang/codeAnalysis/compilation.ts" />
 /// <reference path="./idealang/codeAnalysis/binding/binder.ts" />
+/// <reference path="./tests/main.ts" />
 
-const fs = require("fs");
+/*
 const readline = require("readline");
 
 const rl = readline.createInterface({
@@ -10,9 +11,6 @@ const rl = readline.createInterface({
     "output": process.stdout,
     "terminal": false
 });
-
-
-//const code = fs.readFileSync("./input.txt").toString();
 
 const variables: Map<VariableSymbol, all> = new Map();
 
@@ -40,7 +38,7 @@ function input (){
     });
 }
 
-input();
+
 
 
 function getErrorText (diagnostic: Diagnostic, line: string): string{
@@ -52,5 +50,23 @@ function getErrorText (diagnostic: Diagnostic, line: string): string{
 
     return text;
 }
+
+
+
+
+
+
+input();
+*/
+setTimeout(() => {
+    Tests.execute();
+    Tests.showResults();
+}, 100);
+
+
+
+
+
+
 
 
