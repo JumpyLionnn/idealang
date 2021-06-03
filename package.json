@@ -4,7 +4,7 @@
     "description": "my ideal programming language",
     "main": "index.js",
     "scripts": {
-        "test": "nodemon ./build/index.js",
+        "test": "node ./tests/bin/index.js",
         "start": "node ./build/index.js",
         "lint": "eslint . --ext .ts",
         "lintAndFix": "eslint . --ext .ts --fix"

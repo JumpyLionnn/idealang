@@ -1,2 +1,4 @@
 /// <reference path="syntaxNode.ts"/>
-abstract class ExpressionSyntax extends SyntaxNode {}
+namespace Idealang{
+    export abstract class ExpressionSyntax extends SyntaxNode {}
+}

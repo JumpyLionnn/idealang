@@ -1,4 +1,6 @@
 ///<reference path="boundNode.ts" />
-abstract class BoundExpression extends BoundNode{
-    public type: Type;
+namespace Idealang{
+    export abstract class BoundExpression extends BoundNode{
+        public type: Type;
+    }
 }

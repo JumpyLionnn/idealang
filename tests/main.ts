@@ -99,5 +99,7 @@ Actual: ${actualData}`);
     }
 }
 
-
-Tests.execute();
+setTimeout(() => {
+    Tests.execute();
+    Tests.showResults();
+}, 10);
