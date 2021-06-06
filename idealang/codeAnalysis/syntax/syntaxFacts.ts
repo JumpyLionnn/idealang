@@ -49,6 +49,30 @@ namespace Idealang{
             }
         }
 
+        public static getUnaryOperatorsKinds (){
+            const kinds = Object.keys(SyntaxKind) as SyntaxKind[];
+            const unaryOperators = [];
+            for (let i = 0; i < kinds.length; i++) {
+                const kind = kinds[i];
+                if(this.getUnaryOperatorPrecedence(kind) > 0){
+                    unaryOperators.push(kind);
+                }
+            }
+            return unaryOperators;
+        }
+
+        public static getBinaryOperatorsKinds (){
+            const kinds = Object.keys(SyntaxKind) as SyntaxKind[];
+            const bianryOperators = [];
+            for (let i = 0; i < kinds.length; i++) {
+                const kind = kinds[i];
+                if(this.getBinaryOperatorPrecedence(kind) > 0){
+                    bianryOperators.push(kind);
+                }
+            }
+            return bianryOperators;
+        }
+
         public static getText (kind: SyntaxKind){
             switch (kind) {
                 case SyntaxKind.PlusToken:

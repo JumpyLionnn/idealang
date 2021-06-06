@@ -1,9 +1,7 @@
-
-
 Tests.describe("syntax facts tests", (assert) => {
-    const values = Object.keys(Idealang.SyntaxKind) as Idealang.SyntaxKind[];
-    for (let i = 0; i < values.length; i++) {
-        const kind = values[i];
+    const kinds = Object.keys(Idealang.SyntaxKind) as Idealang.SyntaxKind[];
+    for (let i = 0; i < kinds.length; i++) {
+        const kind = kinds[i];
         const text = Idealang.SyntaxFacts.getText(kind);
         if(text === null){
             return;

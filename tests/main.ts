@@ -77,6 +77,33 @@ Actual: ${actualData}`);
         }
     }
 
+    public isType<T> (type: any, object: T){
+        this._tests++;
+        if(object instanceof type){
+            this._passed++;
+        }
+        else{
+            this._failed++;
+            this._faliedMessages.push(`Failed  ${this._name}
+Expected Type: ${type}
+`);
+        }
+    }
+
+    public isNotType<T> (type: any, object: T){
+        this._tests++;
+        if(!(object instanceof type)){
+            this._passed++;
+        }
+        else{
+            this._failed++;
+            this._faliedMessages.push(`Failed  ${this._name}
+Expected Type: any
+Actual tpye: ${type}
+`);
+        }
+    }
+
 
     public get name (){
         return this._name;
