@@ -2,8 +2,13 @@
 namespace Idealang{
     export class Lexer{
         private _text: string;
+        private readonly _diagnostics: DiagnosticBag = new DiagnosticBag();
+
         private _position: number = 0;
-        private _diagnostics: DiagnosticBag = new DiagnosticBag();
+
+        private _start: number = 0;
+        private _kind: SyntaxKind;
+        private _value: all | null;
         public constructor (text: string){
             this._text = text;
         }
@@ -24,88 +29,126 @@ namespace Idealang{
             return this._text.charAt(index);
         }
 
-        private next (): void{
-            this._position++;
-        }
-
         public nextToken (): SyntaxToken {
-            if(this._position >= this._text.length){
-                return new SyntaxToken(SyntaxKind.EndOfFileToken, this._position, "\0", null);
-            }
-            const start: number = this._position;
-            if(/[0-9]/.test(this.currentChar)){
-                while(/[0-9]/.test(this.currentChar)){
-                    this.next();
-                }
-                const text = this._text.substring(start, this._position);
-                const int = parseInt(text);
-                if(int > 2147483648 || int < -2147483648){
-                    this._diagnostics.reportInvalidNumber(new TextSpan(start, start - this._position), this._text, Type.int);
-                }
-                return new SyntaxToken(SyntaxKind.NumberToken, start, text, int);
-            }
-            if(/\s/.test(this.currentChar)){
-                while(/\s/.test(this.currentChar)){
-                    this.next();
-                }
-                const text = this._text.substring(start, this._position);
-                return new SyntaxToken(SyntaxKind.WhitespaceToken, start, text, null);
-            }
-
-            if(/[a-zA-Z]/.test(this.currentChar)){
-                while(/[a-zA-Z]/.test(this.currentChar)){
-                    this.next();
-                }
-
-                const text = this._text.substring(start, this._position);
-                const kind = SyntaxFacts.getKeywordKind(text);
-                return new SyntaxToken(kind, start, text, null);
-            }
-
+            this._start = this._position;
+            this._kind = SyntaxKind.BadToken;
+            this._value = null;
             switch (this.currentChar) {
+                case "\0":
+                    this._kind = SyntaxKind.EndOfFileToken;
+                    break;
                 case "+":
-                    return new SyntaxToken(SyntaxKind.PlusToken, this._position++, "+", null);
+                    this._kind = SyntaxKind.PlusToken;
+                    this._position++;
+                    break;
                 case "-":
-                    return new SyntaxToken(SyntaxKind.MinusToken, this._position++, "-", null);
+                    this._kind = SyntaxKind.MinusToken;
+                    this._position++;
+                    break;
                 case "*":
-                    return new SyntaxToken(SyntaxKind.StarToken, this._position++, "*", null);
+                    this._kind = SyntaxKind.StarToken;
+                    this._position++;
+                    break;
                 case "/":
-                    return new SyntaxToken(SyntaxKind.SlashToken, this._position++, "/", null);
+                    this._kind = SyntaxKind.SlashToken;
+                    this._position++;
+                    break;
                 case "(":
-                    return new SyntaxToken(SyntaxKind.OpenParenthesisToken, this._position++, "(", null);
+                    this._kind = SyntaxKind.OpenParenthesisToken;
+                    this._position++;
+                    break;
                 case ")":
-                    return new SyntaxToken(SyntaxKind.CloseParenthesisToken, this._position++, ")", null);
+                    this._kind = SyntaxKind.CloseParenthesisToken;
+                    this._position++;
+                    break;
                 case "&":
                     if(this.lookAhead === "&"){
                         this._position += 2;
-                        return new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, start, "&&", null);
+                        this._kind = SyntaxKind.AmpersandAmpersandToken;
                     }
                     break;
                 case "|":
                     if(this.lookAhead === "|"){
+                        this._kind = SyntaxKind.PipePipeToken;
                         this._position += 2;
-                        return new SyntaxToken(SyntaxKind.PipePipeToken, start, "||", null);
                     }
                     break;
                 case "=":
-                    if(this.lookAhead === "="){
-                        this._position += 2;
-                        return new SyntaxToken(SyntaxKind.EqualsEqualsToken, start, "==", null);
+                    this._position++;
+                    if(this.currentChar !== "="){
+                        this._kind = SyntaxKind.EqualsToken;
                     }
                     else{
+                        this._kind = SyntaxKind.EqualsEqualsToken;
                         this._position++;
-                        return new SyntaxToken(SyntaxKind.EqualsToken, start, "=", null);
                     }
+                    break;
                 case "!":
-                    if(this.lookAhead === "="){
-                        this._position += 2;
-                        return new SyntaxToken(SyntaxKind.BangEqualsToken, start, "!=", null);
-                    }
                     this._position++;
-                    return new SyntaxToken(SyntaxKind.BangToken, start, "!", null);
+                    if(this.currentChar !== "="){
+                        this._kind = SyntaxKind.BangToken;
+                    }
+                    else{
+                        this._kind = SyntaxKind.BangEqualsToken;
+                        this._position++;
+                    }
+                    break;
+                case "0": case "1": case "2": case "3": case "4":
+                case "5": case "6": case "7": case "8": case "9":
+                    this.readNumberToken();
+                    break;
+                case " ":
+                case "\t":
+                case "\n":
+                case "\r":
+                    this.readWhiteSpaceToken();
+                    break;
+                default:
+                    if(/[a-zA-Z]/.test(this.currentChar)){
+                        this.readIdentifierOrKeywordToken();
+                    }
+                    else if(/\s/.test(this.currentChar)){
+                        this.readWhiteSpaceToken();
+                    }
+                    else{
+                        this._diagnostics.reportBadCharacter(this._position, this.currentChar);
+                        this._position++;
+                    }
+                    break;
             }
-            this._diagnostics.reportBadCharacter(this._position, this.currentChar);
-            return new SyntaxToken(SyntaxKind.BadToken, this._position++, this._text.charAt(this._position - 1), null);
+            let text = SyntaxFacts.getText(this._kind);
+            if(text === null){
+                text = this._text.substring(this._start, this._position);
+            }
+            return new SyntaxToken(this._kind, this._start, text, this._value);
+        }
+
+        private readNumberToken (){
+            while(/[0-9]/.test(this.currentChar)){
+                this._position++;
+            }
+            const text = this._text.substring(this._start, this._position);
+            const int = parseInt(text);
+            if(int > 2147483648 || int < -2147483648){
+                this._diagnostics.reportInvalidNumber(new TextSpan(this._start, this._start - this._position), this._text, Type.int);
+            }
+            this._value = int;
+            this._kind = SyntaxKind.NumberToken;
+        }
+
+        private readWhiteSpaceToken (){
+            while(/\s/.test(this.currentChar)){
+                this._position++;
+            }
+            this._kind = SyntaxKind.WhitespaceToken;
+        }
+
+        private readIdentifierOrKeywordToken (){
+            while(/[a-zA-Z]/.test(this.currentChar)){
+                this._position++;
+            }
+            const text = this._text.substring(this._start, this._position);
+            this._kind = SyntaxFacts.getKeywordKind(text);
         }
 
         get diagnostics (): DiagnosticBag{
