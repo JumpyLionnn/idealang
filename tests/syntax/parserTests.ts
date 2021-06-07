@@ -1,13 +1,11 @@
 
-Tests.describe("parser tests", (assert) => {
+Tests.describe("binary expressions tests", (assert) => {
     const operators = Idealang.SyntaxFacts.getBinaryOperatorsKinds();
-    const i =0;
-    const j = 0;
-    //for (let i = 0; i < operators.length; i++) {
+    for (let i = 0; i < operators.length; i++) {
         const operator1 = operators[i];
         const operator1Text = Idealang.SyntaxFacts.getText(operator1) as string;
         const operator1Precedence = Idealang.SyntaxFacts.getBinaryOperatorPrecedence(operator1);
-        //for (let j = 0; j < operators.length; j++) {
+        for (let j = 0; j < operators.length; j++) {
             const operator2 = operators[j];
             const operator2Text = Idealang.SyntaxFacts.getText(operator2) as string;
             const operator2Precedence = Idealang.SyntaxFacts.getBinaryOperatorPrecedence(operator2);
@@ -40,52 +38,48 @@ Tests.describe("parser tests", (assert) => {
                 asserting.assertNode(assert, Idealang.SyntaxKind.NameExpression);
                 asserting.assertToken(assert, Idealang.SyntaxKind.IdentifierToken, "c");
             }
-        //}
-    //}
+        }
+    }
 });
 
 
-class Asserting {
-    public readonly nodes: (Idealang.SyntaxNode | Idealang.SyntaxToken)[];
-    private _index: number = 0;
-    constructor (node: Idealang.SyntaxNode) {
-        this.nodes = this.flatten(node);
-    }
+Tests.describe("unary expressions tests", (assert) => {
+    const unaryOperators = Idealang.SyntaxFacts.getUnaryOperatorsKinds();
+    const binaryOperators = Idealang.SyntaxFacts.getBinaryOperatorsKinds();
+    for (let i = 0; i < unaryOperators.length; i++) {
+        const unaryOperator = unaryOperators    [i];
+        const unaryOperatorText = Idealang.SyntaxFacts.getText(unaryOperator) as string;
+        const unaryOperatorPrecedence = Idealang.SyntaxFacts.getUnaryOperatorPrecedence(unaryOperator);
+        for (let j = 0; j < binaryOperators.length; j++) {
+            const binaryOperator = binaryOperators[j];
+            const binaryOperatorText = Idealang.SyntaxFacts.getText(binaryOperator) as string;
+            const binaryOperatorPrecedence = Idealang.SyntaxFacts.getBinaryOperatorPrecedence(binaryOperator);
 
-    private flatten (node: Idealang.SyntaxNode){
-        const stack: (Idealang.SyntaxNode | Idealang.SyntaxToken)[] = [node];
-        const resultStack: (Idealang.SyntaxNode | Idealang.SyntaxToken)[] = [];
+            const text = `${unaryOperatorText} a ${binaryOperatorText} b`;
+            const expression = Idealang.SyntaxTree.parse(text).root;
 
-        while(stack.length > 0){
-            const singleNode = stack.pop() as Idealang.SyntaxNode | Idealang.SyntaxToken;
-            resultStack.push(singleNode);
-
-            if(singleNode instanceof Idealang.SyntaxToken)
-                continue;
-
-            const childNodes = singleNode.getChildren().reverse();
-            for (let i = 0; i < childNodes.length; i++) {
-                stack.push(childNodes[i]);
+            const asserting = new Asserting(expression);
+            if(unaryOperatorPrecedence >= binaryOperatorPrecedence){
+                asserting.assertNode(assert, Idealang.SyntaxKind.BinaryExpression);
+                asserting.assertNode(assert, Idealang.SyntaxKind.UnaryExpression);
+                asserting.assertToken(assert, unaryOperator, unaryOperatorText);
+                asserting.assertNode(assert, Idealang.SyntaxKind.NameExpression);
+                asserting.assertToken(assert, Idealang.SyntaxKind.IdentifierToken, "a");
+                asserting.assertToken(assert, binaryOperator, binaryOperatorText);
+                asserting.assertNode(assert, Idealang.SyntaxKind.NameExpression);
+                asserting.assertToken(assert, Idealang.SyntaxKind.IdentifierToken, "b");
+            }
+            else{
+                asserting.assertNode(assert, Idealang.SyntaxKind.UnaryExpression);
+                asserting.assertToken(assert, unaryOperator, unaryOperatorText);
+                asserting.assertNode(assert, Idealang.SyntaxKind.BinaryExpression);
+                asserting.assertNode(assert, Idealang.SyntaxKind.NameExpression);
+                asserting.assertToken(assert, Idealang.SyntaxKind.IdentifierToken, "a");
+                asserting.assertToken(assert, binaryOperator, binaryOperatorText);
+                asserting.assertNode(assert, Idealang.SyntaxKind.NameExpression);
+                asserting.assertToken(assert, Idealang.SyntaxKind.IdentifierToken, "b");
             }
         }
-        return resultStack;
     }
+});
 
-    public assertToken (assert: TestDescription, kind: Idealang.SyntaxKind, text: string){
-        const token = this.nodes[this._index];
-        if(assert.isType(Idealang.SyntaxToken, token)){
-            assert.equal(text, (token as Idealang.SyntaxToken).text);
-            assert.equal(kind, token.kind);
-        }
-
-        this._index++;
-    }
-
-    public assertNode (assert: TestDescription, kind: Idealang.SyntaxKind){
-        const token = this.nodes[this._index];
-        assert.isNotType(Idealang.SyntaxToken, token);
-        assert.equal(kind, token.kind);
-
-        this._index++;
-    }
-}
