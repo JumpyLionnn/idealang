@@ -10,5 +10,9 @@ namespace Idealang{
         public get start (): number{return this._start;}
         public get length (): number{return this._length;}
         public get end (): number{return this._length + this._start;}
+
+        public static fromBounds (start: number, end: number){
+            return new TextSpan(start, end - start);
+        }
     }
 }
