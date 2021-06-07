@@ -108,6 +108,20 @@ Actual type: ${type}
         }
     }
 
+    public empty<T> (array: T[]){
+        this._tests++;
+        if(array.length === 0){
+            this._passed++;
+        }
+        else{
+            this._failed++;
+            this._faliedMessages.push(`Failed  ${this._name}
+Expected: []
+Actual: ${array}
+`);
+        }
+    }
+
 
     public get name (){
         return this._name;

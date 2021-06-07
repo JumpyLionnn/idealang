@@ -1,29 +1,31 @@
 /// <reference path="../main.ts" />
 
-const lexerTokens: (Idealang.SyntaxKind | string)[][] = [
 
+const lexerTokens: (Idealang.SyntaxKind | string)[][] = [
     [Idealang.SyntaxKind.NumberToken, "1"],
     [Idealang.SyntaxKind.NumberToken, "123"],
 
-    [Idealang.SyntaxKind.PlusToken, "+"],
-    [Idealang.SyntaxKind.MinusToken, "-"],
-    [Idealang.SyntaxKind.StarToken, "*"],
-    [Idealang.SyntaxKind.SlashToken , "/"],
-    [Idealang.SyntaxKind.BangToken, "!"],
-    [Idealang.SyntaxKind.EqualsToken, "="],
-    [Idealang.SyntaxKind.AmpersandAmpersandToken, "&&"],
-    [Idealang.SyntaxKind.PipePipeToken, "||"],
-    [Idealang.SyntaxKind.EqualsEqualsToken, "=="],
-    [Idealang.SyntaxKind.BangEqualsToken, "!="],
-    [Idealang.SyntaxKind.OpenParenthesisToken, "("],
-    [Idealang.SyntaxKind.CloseParenthesisToken, ")"],
-
     [Idealang.SyntaxKind.IdentifierToken, "a"],
     [Idealang.SyntaxKind.IdentifierToken, "abc"],
-
-    [Idealang.SyntaxKind.FalseKeyword, "false"],
-    [Idealang.SyntaxKind.TrueKeyword, "true"]
 ];
+
+lexerTokens.push(...(() => {
+    const kinds = Object.values(Idealang.SyntaxKind).filter((value) => {
+        if(Idealang.SyntaxFacts.getText(value) !== null)
+            return true;
+    }) as Idealang.SyntaxKind[];
+    const finalKinds: (Idealang.SyntaxKind | string)[][] = [];
+    for (let i = 0; i < kinds.length; i++) {
+        const kind = kinds[i];
+        finalKinds.push([
+            kind,
+            Idealang.SyntaxFacts.getText(kind) as string
+        ]);
+    }
+    return finalKinds;
+
+})());
+
 
 
 const lexerSeperatorsTokens: (Idealang.SyntaxKind | string)[][] = [
@@ -33,6 +35,31 @@ const lexerSeperatorsTokens: (Idealang.SyntaxKind | string)[][] = [
     [Idealang.SyntaxKind.WhitespaceToken, "\n"],
     [Idealang.SyntaxKind.WhitespaceToken, "\r\n"]
 ];
+
+Tests.describe("lexer tests all tokens", (assert) => {
+    const tokenKinds = Object.values(Idealang.SyntaxKind).filter((value) => {
+        if(value.endsWith("Keyword") || value.endsWith("Token"))
+            return true;
+    }) as Idealang.SyntaxKind[];
+
+    const testedTokenKinds = [
+        ...lexerTokens,
+        ...lexerSeperatorsTokens,
+        [Idealang.SyntaxKind.BadToken, ""],
+        [Idealang.SyntaxKind.EndOfFileToken, ""],
+    ];
+
+    const untestedTokenKinds = [...tokenKinds];
+    for (let i = 0; i < testedTokenKinds.length; i++) {
+        const tentedKind = testedTokenKinds[i];
+        const index = untestedTokenKinds.indexOf(tentedKind[0] as Idealang.SyntaxKind);
+        if(index !== -1)
+            untestedTokenKinds.splice(index, 1);
+    }
+
+    assert.empty(untestedTokenKinds);
+
+});
 
 
 Tests.describe("seperated pairs lexer token test", (assert) => {
