@@ -1,5 +1,8 @@
 namespace Idealang{
     export abstract class SyntaxNode{
-        public kind: SyntaxKind = SyntaxKind.WhitespaceToken;
+        protected _kind: SyntaxKind = SyntaxKind.WhitespaceToken;
+        public get kind (){return this._kind;}
+
+        public abstract getChildren (): (SyntaxNode | SyntaxToken)[];
     }
 }

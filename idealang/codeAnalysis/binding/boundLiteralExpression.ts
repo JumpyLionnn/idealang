@@ -2,12 +2,14 @@
 ///<reference path="boundNodeKind.ts"/>
 namespace Idealang{
     export class BoundLiteralExpression extends BoundExpression{
-        public value: all;
+        public _value: all;
         constructor (value: all){
             super();
-            this.value = value;
-            this.type = Type.getType(this.value);
-            this.kind = BoundNodeKind.LiteralExpression;
+            this._value = value;
+            this._type = Type.getType(value);
+            this._kind = BoundNodeKind.LiteralExpression;
         }
+
+        public get value (){return this._value;}
     }
 }

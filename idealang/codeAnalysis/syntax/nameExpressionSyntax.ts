@@ -4,10 +4,12 @@ namespace Idealang{
         constructor (identifierToken: SyntaxToken) {
             super();
             this._identifierToken = identifierToken;
-            this.kind = SyntaxKind.NameExpression;
+            this._kind = SyntaxKind.NameExpression;
         }
-        public get identifierToken (): SyntaxToken{
-            return this._identifierToken;
+        public get identifierToken (){return this._identifierToken;}
+
+        public getChildren (){
+            return [this._identifierToken];
         }
     }
 }

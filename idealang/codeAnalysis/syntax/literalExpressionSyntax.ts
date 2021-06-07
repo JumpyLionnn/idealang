@@ -1,18 +1,20 @@
 /// <reference path="expressionSyntax.ts"/>
 namespace Idealang{
     export class LiteralExpressionSyntax extends ExpressionSyntax {
-        public literalToken: SyntaxToken;
-        public value: all;
+        private _literalToken: SyntaxToken;
+        private _value: all;
         constructor (literalToken: SyntaxToken, value?: all){
             super();
-            this.literalToken = literalToken;
-            if(value !== undefined){
-                this.value = value;
-            }
-            else{
-                this.value = literalToken.value;
-            }
-            this.kind = SyntaxKind.LiteralExpression;
+            this._literalToken = literalToken;
+            this._value = value !== undefined ? value : literalToken.value;
+            this._kind = SyntaxKind.LiteralExpression;
+        }
+
+        public get literalToken (){return this._literalToken;}
+        public get value (){return this._value;}
+
+        public getChildren (){
+            return [this._literalToken];
         }
     }
 }

@@ -15,10 +15,10 @@ namespace Idealang{
             }
         }
 
-        public get kind (): SyntaxKind{return this._kind;}
-        public get text (): string{return this._text;}
-        public get position (): number{return this._position;}
-        public get value (): all{return this._value;}
-        public get span (): TextSpan{return new TextSpan(this._position, this._text.length);}
+        public get kind (){return this._kind;}
+        public get text (){return this._text;}
+        public get position (){return this._position;}
+        public get value (){return this._value;}
+        public get span (){return new TextSpan(this._position, this._text.length);}
     }
 }

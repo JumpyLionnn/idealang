@@ -3,16 +3,21 @@
 
 namespace Idealang{
     export class BoundUnaryOperator {
-        public syntaxKind: SyntaxKind;
-        public kind: BoundUnaryOperatorKind;
-        public operandType: Type;
-        public resultType: Type;
+        private _syntaxKind: SyntaxKind;
+        private _kind: BoundUnaryOperatorKind;
+        private _operandType: Type;
+        private _resultType: Type;
         private constructor (syntaxKind: SyntaxKind, kind: BoundUnaryOperatorKind, operandType: Type, resultType?: Type) {
-            this.syntaxKind = syntaxKind;
-            this.kind = kind;
-            this.operandType = operandType;
-            this.resultType = resultType || operandType;
+            this._syntaxKind = syntaxKind;
+            this._kind = kind;
+            this._operandType = operandType;
+            this._resultType = resultType || operandType;
         }
+
+        public get syntaxKind (){return this._syntaxKind;}
+        public get kind (){return this._kind;}
+        public get operandType (){return this._operandType;}
+        public get resultType (){return this._resultType;}
 
         private static _operators: BoundUnaryOperator[] = [
             new BoundUnaryOperator(SyntaxKind.BangToken, BoundUnaryOperatorKind.LogicalNegation, Type.boolean),

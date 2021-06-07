@@ -6,8 +6,8 @@ namespace Idealang{
             super();
             this._variable = variable;
             this._expression = expression;
-            this.kind = BoundNodeKind.AssignmentExpression;
-            this.type = expression.type;
+            this._kind = BoundNodeKind.AssignmentExpression;
+            this._type = expression.type;
         }
 
         public get variable (): VariableSymbol{return this._variable;}

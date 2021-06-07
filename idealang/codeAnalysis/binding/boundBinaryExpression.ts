@@ -1,16 +1,20 @@
 ///<reference path="boundExpression.ts"/>
 namespace Idealang{
     export class BoundBinaryExpression extends BoundExpression{
-        public left: BoundExpression;
-        public operator: BoundBinaryOperator;
-        public right: BoundExpression;
+        private _left: BoundExpression;
+        private _operator: BoundBinaryOperator;
+        private _right: BoundExpression;
         constructor (left: BoundExpression, operator: BoundBinaryOperator, right: BoundExpression){
             super();
-            this.left = left;
-            this.operator = operator;
-            this.right = right;
-            this.type = operator.resultType;
-            this.kind = BoundNodeKind.BinaryExpression;
+            this._left = left;
+            this._operator = operator;
+            this._right = right;
+            this._type = operator.resultType;
+            this._kind = BoundNodeKind.BinaryExpression;
         }
+
+        public get left (){return this._left;}
+        public get operator (){return this._operator;}
+        public get right (){return this._right;}
     }
 }

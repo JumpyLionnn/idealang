@@ -2,18 +2,25 @@
 ///<reference path="../syntax/syntaxKind.ts"/>
 namespace Idealang{
     export class BoundBinaryOperator {
-        public syntaxKind: SyntaxKind;
-        public kind: BoundBinaryOperatorKind;
-        public leftType: Type;
-        public rightType: Type;
-        public resultType: Type;
+        private _syntaxKind: SyntaxKind;
+        private _kind: BoundBinaryOperatorKind;
+        private _leftType: Type;
+        private _rightType: Type;
+        private _resultType: Type;
         private constructor (syntaxKind: SyntaxKind, kind: BoundBinaryOperatorKind, leftType: Type, rightType?: Type, resultType?: Type) {
-            this.syntaxKind = syntaxKind;
-            this.kind = kind;
-            this.leftType = leftType;
-            this.rightType = rightType || leftType;
-            this.resultType = resultType || leftType;
+            this._syntaxKind = syntaxKind;
+            this._kind = kind;
+            this._leftType = leftType;
+            this._rightType = rightType || leftType;
+            this._resultType = resultType || leftType;
         }
+
+        public get syntaxKind (){return this._syntaxKind;}
+        public get kind (){return this._kind;}
+        public get leftType (){return this._leftType;}
+        public get rightType (){return this._rightType;}
+        public get resultType (){return this._resultType;}
+
 
         private static _operators: BoundBinaryOperator[] = [
             new BoundBinaryOperator(SyntaxKind.PlusToken, BoundBinaryOperatorKind.Addition, Type.int),

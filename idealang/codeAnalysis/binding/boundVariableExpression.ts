@@ -4,8 +4,8 @@ namespace Idealang{
         constructor (variable: VariableSymbol) {
             super();
             this._variable = variable;
-            this.kind = BoundNodeKind.VariableExpression;
-            this.type = variable.type;
+            this._kind = BoundNodeKind.VariableExpression;
+            this._type = variable.type;
         }
 
         public get variable (): VariableSymbol{return this._variable;}

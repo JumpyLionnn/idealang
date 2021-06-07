@@ -43,7 +43,6 @@ module.exports = {
         "@typescript-eslint/prefer-as-const": "error",
         "@typescript-eslint/type-annotation-spacing": "error",
         "@typescript-eslint/default-param-last": "error",
-        "@typescript-eslint/indent": "error",
         "@typescript-eslint/no-extra-parens": "error",
         "@typescript-eslint/no-extra-semi": "error",
         "@typescript-eslint/object-curly-spacing": "error",

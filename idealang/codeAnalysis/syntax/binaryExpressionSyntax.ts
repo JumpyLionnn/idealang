@@ -2,15 +2,23 @@
 
 namespace Idealang{
     export class BinaryExpressionSyntax extends ExpressionSyntax {
-        public left: ExpressionSyntax;
-        public operatorToken: SyntaxToken;
-        public right: ExpressionSyntax;
-        constructor (left: ExpressionSyntax, operationToken: SyntaxToken, right: ExpressionSyntax){
+        private _left: ExpressionSyntax;
+        private _operatorToken: SyntaxToken;
+        private _right: ExpressionSyntax;
+        constructor (left: ExpressionSyntax, operatorToken: SyntaxToken, right: ExpressionSyntax){
             super();
-            this.left = left;
-            this.operatorToken = operationToken;
-            this.right = right;
-            this.kind = SyntaxKind.BinaryExpression;
+            this._left = left;
+            this._operatorToken = operatorToken;
+            this._right = right;
+            this._kind = SyntaxKind.BinaryExpression;
+        }
+
+        public get left (){return this._left;}
+        public get operatorToken (){return this._operatorToken;}
+        public get right (){return this._right;}
+
+        public getChildren (){
+            return [this._left, this._operatorToken, this._right];
         }
     }
 }

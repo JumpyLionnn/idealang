@@ -8,19 +8,17 @@ namespace Idealang{
             this._identifierToken = identifierToken;
             this._equalsToken = equalsToken;
             this._expression = expression;
-            this.kind = SyntaxKind.AssignmentExpression;
+            this._kind = SyntaxKind.AssignmentExpression;
         }
 
-        public get identifierToken (): SyntaxToken{
-            return this._identifierToken;
-        }
+        public get identifierToken (){return this._identifierToken;}
 
-        public get equalsToken (): SyntaxToken{
-            return this._equalsToken;
-        }
+        public get equalsToken (){return this._equalsToken;}
 
-        public get expression (): ExpressionSyntax{
-            return this._expression;
+        public get expression (){return this._expression;}
+
+        public getChildren (){
+            return [this._identifierToken, this._equalsToken, this._expression];
         }
     }
 }

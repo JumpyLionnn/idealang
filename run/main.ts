@@ -1,9 +1,5 @@
-/// <reference path="./idealang/codeAnalysis/syntax/syntaxTree.ts" />
-/// <reference path="./idealang/codeAnalysis/compilation.ts" />
-/// <reference path="./idealang/codeAnalysis/binding/binder.ts" />
-/// <reference path="./tests/main.ts" />
 
-/*
+
 const readline = require("readline");
 
 const rl = readline.createInterface({
@@ -12,14 +8,14 @@ const rl = readline.createInterface({
     "terminal": false
 });
 
-const variables: Map<VariableSymbol, all> = new Map();
+const variables: Map<Idealang.VariableSymbol, Idealang.all> = new Map();
 
 
 function input (){
     rl.question(">>>", (line: string) => {
-        const syntaxTree = SyntaxTree.parse(line);
+        const syntaxTree = Idealang.SyntaxTree.parse(line);
 
-        const compilation = new Compilation(syntaxTree);
+        const compilation = new Idealang.Compilation(syntaxTree);
 
         const result = compilation.evaluate(variables);
 
@@ -41,7 +37,7 @@ function input (){
 
 
 
-function getErrorText (diagnostic: Diagnostic, line: string): string{
+function getErrorText (diagnostic: Idealang.Diagnostic, line: string): string{
     let text = "ERROR: " + diagnostic.toString() + "\n";
     text += line + "\n";
 
@@ -57,11 +53,8 @@ function getErrorText (diagnostic: Diagnostic, line: string): string{
 
 
 input();
-*/
-setTimeout(() => {
-    Tests.execute();
-    Tests.showResults();
-}, 100);
+
+
 
 
 

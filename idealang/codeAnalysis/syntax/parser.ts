@@ -7,9 +7,10 @@
 /// <reference path="../diagnosticBag.ts"/>
 namespace Idealang{
     export class Parser {
-        private _tokens: SyntaxToken[] = [];
+        private readonly _tokens: SyntaxToken[] = [];
+        private readonly _diagnostics: DiagnosticBag = new DiagnosticBag();
+
         private _position: number = 0;
-        private _diagnostics: DiagnosticBag = new DiagnosticBag();
         public constructor (text: string) {
 
             const lexer = new Lexer(text);
@@ -101,27 +102,39 @@ namespace Idealang{
         private parsePrimaryExpression (): ExpressionSyntax {
             switch (this.current.kind) {
                 case SyntaxKind.OpenParenthesisToken:
-                    const left = this.nextToken();
-                    // change it to parseBinaryExpression in the future
-                    const expression = this.parseAssignmentExpression();
-                    const right = this.matchToken(SyntaxKind.CloseParenthesisToken);
-                    return new ParenthesizedExpressionSyntax(left, expression, right);
+                    return this.parseParenthesizedExpression();
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
-                    const keywordToken = this.nextToken();
-                    const value = keywordToken.kind === SyntaxKind.TrueKeyword;
-                    return new LiteralExpressionSyntax(keywordToken, value);
-                case SyntaxKind.IdentifierToken:
-                    const identifierToken = this.nextToken();
-                    return new NameExpressionSyntax(identifierToken);
+                    return this.parseBooleanLiteral();
+                case SyntaxKind.NumberToken:
+                    return this.parseNumberLiteral();
                 default:
-                    const numberToken = this.matchToken(SyntaxKind.NumberToken);
-                    return new LiteralExpressionSyntax(numberToken);
+                    return this.parseNameToken();
             }
         }
 
-        get diagnostics (): DiagnosticBag {
-            return this._diagnostics;
+        private parseNumberLiteral (){
+            const numberToken = this.matchToken(SyntaxKind.NumberToken);
+            return new LiteralExpressionSyntax(numberToken);
+        }
+
+        private parseParenthesizedExpression (){
+            const left = this.matchToken(SyntaxKind.OpenParenthesisToken);
+            // change it to parseBinaryExpression in the future
+            const expression = this.parseAssignmentExpression();
+            const right = this.matchToken(SyntaxKind.CloseParenthesisToken);
+            return new ParenthesizedExpressionSyntax(left, expression, right);
+        }
+
+        private parseBooleanLiteral (){
+            const isTrue = this.current.kind === SyntaxKind.TrueKeyword;
+            const keywordToken = isTrue ? this.matchToken(SyntaxKind.TrueKeyword) : this.matchToken(SyntaxKind.FalseKeyword);
+            return new LiteralExpressionSyntax(keywordToken, isTrue);
+        }
+
+        private parseNameToken (){
+            const identifierToken = this.matchToken(SyntaxKind.IdentifierToken);
+            return new NameExpressionSyntax(identifierToken);
         }
     }
 }

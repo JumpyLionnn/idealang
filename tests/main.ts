@@ -81,12 +81,15 @@ Actual: ${actualData}`);
         this._tests++;
         if(object instanceof type){
             this._passed++;
+            return true;
         }
         else{
             this._failed++;
             this._faliedMessages.push(`Failed  ${this._name}
 Expected Type: ${type}
+
 `);
+            return false;
         }
     }
 
@@ -99,8 +102,9 @@ Expected Type: ${type}
             this._failed++;
             this._faliedMessages.push(`Failed  ${this._name}
 Expected Type: any
-Actual tpye: ${type}
+Actual type: ${type}
 `);
+
         }
     }
 
@@ -125,6 +129,7 @@ Actual tpye: ${type}
         return this._faliedMessages;
     }
 }
+
 
 setTimeout(() => {
     Tests.execute();

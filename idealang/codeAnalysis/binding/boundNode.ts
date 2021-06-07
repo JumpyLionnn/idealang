@@ -1,5 +1,6 @@
 namespace Idealang{
     export abstract class BoundNode{
-        public kind: BoundNodeKind;
+        protected _kind: BoundNodeKind;
+        public get kind (){return this._kind;}
     }
 }
