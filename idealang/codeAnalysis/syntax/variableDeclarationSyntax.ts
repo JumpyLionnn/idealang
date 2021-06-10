@@ -22,7 +22,7 @@ namespace Idealang{
         public get semicolonToken (){return this._semicolonToken;}
 
         public getChildren (){
-            return [];
+            return [this._keyword, this._identifier, this._equalsToken, this._initializer, this._semicolonToken];
         }
     }
 }

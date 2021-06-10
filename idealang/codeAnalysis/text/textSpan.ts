@@ -14,5 +14,9 @@ namespace Idealang{
         public static fromBounds (start: number, end: number){
             return new TextSpan(start, end - start);
         }
+
+        public toString (): string{
+            return `${this.start}..${this.end}`;
+        }
     }
 }

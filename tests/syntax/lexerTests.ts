@@ -107,6 +107,8 @@ Tests.describe("single lexer token test", (assert) => {
 
 
 Tests.describe("pairs lexer token test", (assert) => {
+    const i = 15;
+    const j = 0;
     for(let i = 0; i < lexerTokens.length; i++){
         const t1Kind = lexerTokens[i][0] as Idealang.SyntaxKind;
         const t1Text = lexerTokens[i][1];
@@ -115,7 +117,6 @@ Tests.describe("pairs lexer token test", (assert) => {
             const t2Text = lexerTokens[j][1];
             if(!requiresSeperator(t1Kind, t2Kind)){
                 const tokens = Idealang.SyntaxTree.parseTokens(t1Text + t2Text);
-
                 assert.equal(2, tokens.length);
 
                 assert.equal(t1Kind, tokens[0].kind);

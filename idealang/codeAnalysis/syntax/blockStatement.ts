@@ -17,7 +17,7 @@ namespace Idealang{
         public get closeBraceToken (){return this._closeBraceToken;}
 
         public getChildren (){
-            return [];
+            return [this._openBraceToken, ...this._statements, this._closeBraceToken];
         }
     }
 }

@@ -58,7 +58,7 @@ namespace Idealang{
                     this._position++;
                     break;
                 case ")":
-                    this._kind = SyntaxKind.CloseBraceToken;
+                    this._kind = SyntaxKind.CloseParenthesisToken;
                     this._position++;
                     break;
                 case "{":

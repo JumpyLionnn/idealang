@@ -10,11 +10,12 @@ Tests.describe("binary expressions tests", (assert) => {
             const operator2Text = Idealang.SyntaxFacts.getText(operator2) as string;
             const operator2Precedence = Idealang.SyntaxFacts.getBinaryOperatorPrecedence(operator2);
 
-            const text = `a ${operator1Text} b ${operator2Text} c`;
+            const text = `a ${operator1Text} b ${operator2Text} c;`;
             const expression = parseExpression(text);
 
             const asserting = new Asserting(expression);
             if(operator1Precedence > operator2Precedence){
+                asserting.assertNode(assert, Idealang.SyntaxKind.ExpressionStatement);
                 asserting.assertNode(assert, Idealang.SyntaxKind.BinaryExpression);
                 asserting.assertNode(assert, Idealang.SyntaxKind.BinaryExpression);
                 asserting.assertNode(assert, Idealang.SyntaxKind.NameExpression);
@@ -27,6 +28,7 @@ Tests.describe("binary expressions tests", (assert) => {
                 asserting.assertToken(assert, Idealang.SyntaxKind.IdentifierToken, "c");
             }
             else{
+                asserting.assertNode(assert, Idealang.SyntaxKind.ExpressionStatement);
                 asserting.assertNode(assert, Idealang.SyntaxKind.BinaryExpression);
                 asserting.assertNode(assert, Idealang.SyntaxKind.NameExpression);
                 asserting.assertToken(assert, Idealang.SyntaxKind.IdentifierToken, "a");
@@ -55,11 +57,11 @@ Tests.describe("unary expressions tests", (assert) => {
             const binaryOperatorText = Idealang.SyntaxFacts.getText(binaryOperator) as string;
             const binaryOperatorPrecedence = Idealang.SyntaxFacts.getBinaryOperatorPrecedence(binaryOperator);
 
-            const text = `${unaryOperatorText} a ${binaryOperatorText} b`;
+            const text = `${unaryOperatorText} a ${binaryOperatorText} b;`;
             const expression = parseExpression(text);
-
             const asserting = new Asserting(expression);
             if(unaryOperatorPrecedence >= binaryOperatorPrecedence){
+                asserting.assertNode(assert, Idealang.SyntaxKind.ExpressionStatement);
                 asserting.assertNode(assert, Idealang.SyntaxKind.BinaryExpression);
                 asserting.assertNode(assert, Idealang.SyntaxKind.UnaryExpression);
                 asserting.assertToken(assert, unaryOperator, unaryOperatorText);
@@ -70,6 +72,7 @@ Tests.describe("unary expressions tests", (assert) => {
                 asserting.assertToken(assert, Idealang.SyntaxKind.IdentifierToken, "b");
             }
             else{
+                asserting.assertNode(assert, Idealang.SyntaxKind.ExpressionStatement);
                 asserting.assertNode(assert, Idealang.SyntaxKind.UnaryExpression);
                 asserting.assertToken(assert, unaryOperator, unaryOperatorText);
                 asserting.assertNode(assert, Idealang.SyntaxKind.BinaryExpression);
@@ -82,6 +85,8 @@ Tests.describe("unary expressions tests", (assert) => {
         }
     }
 });
+
+
 
 function parseExpression (text: string) {
     return Idealang.SyntaxTree.parse(text).root.statement;

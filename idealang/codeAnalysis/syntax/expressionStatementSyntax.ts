@@ -14,7 +14,7 @@ namespace Idealang{
         public get semicolonToken (){return this._semicolonToken;}
 
         public getChildren (){
-            return [];
+            return [this._expression, this._semicolonToken];
         }
     }
 }

@@ -38,6 +38,8 @@ class Asserting {
     public assertNode (assert: TestDescription, kind: Idealang.SyntaxKind){
         const token = this.nodes[this._index];
         assert.isNotType(Idealang.SyntaxToken, token);
+        if(token === undefined)
+            return;
         assert.equal(kind, token.kind);
 
         this._index++;

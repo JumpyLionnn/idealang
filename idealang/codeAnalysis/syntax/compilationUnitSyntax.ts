@@ -13,7 +13,7 @@ namespace Idealang{
         public get endOfFileToken (){return this._endOfFileToken;}
 
         public getChildren (){
-            return [];
+            return [this._statement, this._endOfFileToken];
         }
     }
 }
