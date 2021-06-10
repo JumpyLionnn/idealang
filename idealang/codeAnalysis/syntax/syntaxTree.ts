@@ -1,27 +1,43 @@
 ///<reference path="parser.ts" />
 namespace Idealang{
     export class SyntaxTree {
-        public _root: ExpressionSyntax;
-        public _endOfFileToken: SyntaxToken;
-        public _diagnostics: Diagnostic[];
-        constructor (diagnostics: Diagnostic[], root: ExpressionSyntax, endOfFileToken: SyntaxToken) {
-            this._root = root;
-            this._endOfFileToken= endOfFileToken;
-            this._diagnostics = diagnostics;
-
-        }
-
-        public get root (): ExpressionSyntax{return this._root;}
-        public get endOfFileToken (): SyntaxToken{return this._endOfFileToken;}
-        public get diagnostics (): Diagnostic[]{return this._diagnostics;}
-
-        public static parse (text: string): SyntaxTree{
+        private _text: SourceText;
+        private _root: CompilationUnitSyntax;
+        private _diagnostics: Diagnostic[];
+        private constructor (text: SourceText) {
             const parser = new Parser(text);
-            return parser.parse();
+            const root = parser.parseCompilationUnit();
+
+            this._text = text;
+            this._root = root;
+            this._diagnostics = parser.diagnostics.toArray();
+
         }
 
-        public static parseTokens (text: string): SyntaxToken[]{
-            const lexer = new Lexer(text);
+        public get text (){return this._text;}
+        public get root (){return this._root;}
+        public get diagnostics (){return this._diagnostics;}
+
+        public static parse (text: string | SourceText): SyntaxTree{
+            let sourceText: SourceText;
+            if(text instanceof SourceText){
+                sourceText = text;
+            }
+            else{
+             sourceText = SourceText.from(text);
+            }
+            return new SyntaxTree(sourceText);
+        }
+
+        public static parseTokens (text: string | SourceText): SyntaxToken[]{
+            let sourceText: SourceText;
+            if(text instanceof SourceText){
+                sourceText = text;
+            }
+            else{
+             sourceText = SourceText.from(text);
+            }
+            const lexer = new Lexer(sourceText);
             const tokens: SyntaxToken[] = [];
             while(true){
                 const token = lexer.nextToken();

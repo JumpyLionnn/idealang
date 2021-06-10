@@ -4,8 +4,9 @@ namespace Idealang{
         public get kind (){return this._kind;}
 
         public get span (){
-            const first = this.getChildren()[0].span as TextSpan;
-            const last = this.getChildren()[-1].span as TextSpan;
+            const children = this.getChildren();
+            const first = children[0].span as TextSpan;
+            const last = children[children.length -1].span as TextSpan;
             return TextSpan.fromBounds(first.start, last.end);
         }
 

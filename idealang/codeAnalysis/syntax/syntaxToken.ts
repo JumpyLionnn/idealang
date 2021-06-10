@@ -1,4 +1,3 @@
-///<reference path="../textSpan.ts" />
 
 namespace Idealang{
     export class SyntaxToken{

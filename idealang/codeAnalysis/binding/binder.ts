@@ -7,15 +7,94 @@
 namespace Idealang{
     export class Binder {
         private readonly _diagnostics: DiagnosticBag = new DiagnosticBag();
-        private readonly _variables:  VariablesMap;
 
-        constructor (variables: VariablesMap){
-            this._variables = variables;
+        private _scope: BoundScope;
+
+        constructor (parent: BoundScope | null){
+            this._scope = new BoundScope(parent);
+        }
+
+        public static bindGlobalScope (previous: BoundGlobalScope | null, syntax: CompilationUnitSyntax){
+            const parentScope = this.createParentScope(previous);
+            const binder = new Binder(parentScope);
+            const expression = binder.bindStatement(syntax.statement);
+            const variables = binder._scope.getDeclaredVariables();
+            const diagnostics = binder.diagnostics.toArray();
+            if(previous !== null){
+                diagnostics.push(...previous.diagnostics);
+            }
+
+            return new BoundGlobalScope(previous, diagnostics, variables, expression);
+        }
+
+        public static createParentScope (previous: BoundGlobalScope | null){
+            const stack: BoundGlobalScope[] = [];
+            previous = previous;
+            while(previous !== null){
+                stack.push(previous);
+                previous = previous.previous;
+            }
+            stack.reverse();
+
+            let parent: BoundScope | null = null;
+            while(stack.length > 0){
+                previous = stack.pop() as BoundGlobalScope;
+                const scope: BoundScope = new BoundScope(parent);
+                for (let i = 0; i < previous.variables.length; i++) {
+                    const variable = previous.variables[i];
+                    scope.tryDeclare(variable);
+                }
+                parent = scope;
+            }
+            return parent;
         }
 
         public get diagnostics (): DiagnosticBag{return this._diagnostics;}
 
-        public bindExpression (syntax: ExpressionSyntax): BoundExpression{
+        private bindStatement (syntax: StatementSyntax): BoundStatement{
+            switch (syntax.kind) {
+                case SyntaxKind.BlockStatement:
+                    return this.bindBlockStatement(syntax as BlockStatementSyntax);
+                case SyntaxKind.VariableDeclaration:
+                    return this.bindVariableDeclaration(syntax as VariableDeclarationSyntax);
+                case SyntaxKind.ExpressionStatement:
+                    return this.bindExpressionStatement(syntax as ExpressionStatementSyntax);
+                default:
+                    throw new Error(`Unexpected statement ${syntax.kind}`);
+            }
+        }
+
+        private bindBlockStatement (syntax: BlockStatementSyntax): BoundStatement{
+            const statements: BoundStatement[] = [];
+
+            this._scope = new BoundScope(this._scope);
+            for (let i = 0; i < syntax.statements.length; i++) {
+                const statement = this.bindStatement(syntax.statements[i]);
+                statements.push(statement);
+            }
+            this._scope = this._scope.parent as BoundScope;
+
+            return new BoundBlockStatement(statements);
+        }
+
+        public bindVariableDeclaration (syntax: VariableDeclarationSyntax): BoundVariableDeclaration{
+            const name = syntax.identifier.text;
+            const isReadOnly = syntax.keyword.kind === SyntaxKind.LetKeyword;
+            const initializer = this.bindExpression(syntax.initializer);
+            const variable = new VariableSymbol(name, isReadOnly, initializer.type);
+
+            if(!this._scope.tryDeclare(variable)){
+                this.diagnostics.reportVariableAlreadyDeclared(syntax.identifier.span, name);
+            }
+            return new BoundVariableDeclaration(variable, initializer);
+        }
+
+        private bindExpressionStatement (syntax: ExpressionStatementSyntax): BoundStatement{
+            const expression = this.bindExpression(syntax.expression);
+            return new BoundExpressionStatement(expression);
+        }
+
+        private bindExpression (syntax: ExpressionSyntax): BoundExpression{
             switch (syntax.kind) {
                 case SyntaxKind.ParenthesizedExpression:
                     return this.bindParenthesizedExpression(syntax as ParenthesizedExpressionSyntax);
@@ -51,8 +130,8 @@ namespace Idealang{
 
         private bindNameExpression (syntax: NameExpressionSyntax): BoundExpression{
             const name = syntax.identifierToken.text;
-            const variable = getMapKey(this._variables, (v) => v.name === name);
-            if(!variable){
+           const variable = this._scope.tryLookup(name);
+            if(variable === null){
                 this._diagnostics.reportUndefinedName(syntax.identifierToken.span, name);
                 return new BoundLiteralExpression(0);
             }
@@ -62,16 +141,22 @@ namespace Idealang{
         private bindAssignmentExpression (syntax: AssignmentExpressionSyntax): BoundExpression{
             const name = syntax.identifierToken.text;
             const boundExpression = this.bindExpression(syntax.expression);
+            const variable = this._scope.tryLookup(name);
 
-            const existingVariable = getMapKey(this._variables, (v) => v.name === name);
-            if(existingVariable){
-                this._variables.delete(existingVariable);
+            if(this._scope.tryLookup(name) === null){
+                this._diagnostics.reportUndefinedName(syntax.identifierToken.span, name);
+                return boundExpression;
             }
 
-            const variable = new VariableSymbol(name, boundExpression.type);
-            this._variables.set(variable, null);
+            if((variable as VariableSymbol).isReadOnly){
+                this._diagnostics.reportCannotAssign(syntax.equalsToken.span, name);
+            }
 
-            return new BoundAssignmentExpression(variable, boundExpression);
+            if(boundExpression.type !== (variable as VariableSymbol).type){
+                this._diagnostics.reportCannotConvert(syntax.expression.span, boundExpression.type, (variable as VariableSymbol).type);
+                return boundExpression;
+            }
+            return new BoundAssignmentExpression(variable as VariableSymbol, boundExpression);
         }
 
         private bindUnaryExpression (syntax: UnaryExpressionSyntax): BoundExpression{

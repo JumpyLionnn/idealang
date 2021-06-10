@@ -1,9 +1,17 @@
 namespace Idealang{
     export enum BoundNodeKind{
+
+        // expressions
         LiteralExpression = "LiteralExpression",
         VariableExpression = "VariableExpression",
         AssignmentExpression = "AssignmentExpression",
         UnaryExpression = "UnaryExpression",
-        BinaryExpression = "BinaryExpression"
+        BinaryExpression = "BinaryExpression",
+
+
+        // statements
+        BlockStatement = "BlockStatement",
+        ExpressionStatement = "ExpressionStatement",
+        VariableDeclaration = "VariableDeclaration"
     }
 }

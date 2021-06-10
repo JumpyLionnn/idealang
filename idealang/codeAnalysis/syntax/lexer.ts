@@ -1,7 +1,7 @@
 /// <reference path="./syntaxToken.ts" />
 namespace Idealang{
     export class Lexer{
-        private _text: string;
+        private _text: SourceText;
         private readonly _diagnostics: DiagnosticBag = new DiagnosticBag();
 
         private _position: number = 0;
@@ -9,7 +9,7 @@ namespace Idealang{
         private _start: number = 0;
         private _kind: SyntaxKind;
         private _value: all | null;
-        public constructor (text: string){
+        public constructor (text: SourceText){
             this._text = text;
         }
 
@@ -58,7 +58,19 @@ namespace Idealang{
                     this._position++;
                     break;
                 case ")":
-                    this._kind = SyntaxKind.CloseParenthesisToken;
+                    this._kind = SyntaxKind.CloseBraceToken;
+                    this._position++;
+                    break;
+                case "{":
+                    this._kind = SyntaxKind.OpenBraceToken;
+                    this._position++;
+                    break;
+                case "}":
+                    this._kind = SyntaxKind.CloseBraceToken;
+                    this._position++;
+                    break;
+                case ";":
+                    this._kind = SyntaxKind.SemicolonToken;
                     this._position++;
                     break;
                 case "&":
@@ -118,7 +130,7 @@ namespace Idealang{
             }
             let text = SyntaxFacts.getText(this._kind);
             if(text === null){
-                text = this._text.substring(this._start, this._position);
+                text = this._text.toString(this._start, this._position - this._start);
             }
             return new SyntaxToken(this._kind, this._start, text, this._value);
         }
@@ -127,10 +139,10 @@ namespace Idealang{
             while(/[0-9]/.test(this.currentChar)){
                 this._position++;
             }
-            const text = this._text.substring(this._start, this._position);
+            const text = this._text.toString(this._start, this._position - this._start);
             const int = parseInt(text);
             if(int > 2147483648 || int < -2147483648){
-                this._diagnostics.reportInvalidNumber(new TextSpan(this._start, this._start - this._position), this._text, Type.int);
+                this._diagnostics.reportInvalidNumber(new TextSpan(this._start, this._start - this._position), text, Type.int);
             }
             this._value = int;
             this._kind = SyntaxKind.NumberToken;
@@ -147,7 +159,7 @@ namespace Idealang{
             while(/[a-zA-Z]/.test(this.currentChar)){
                 this._position++;
             }
-            const text = this._text.substring(this._start, this._position);
+            const text = this._text.toString(this._start, this._position - this._start);
             this._kind = SyntaxFacts.getKeywordKind(text);
         }
 

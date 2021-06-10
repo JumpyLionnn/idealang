@@ -7,12 +7,13 @@
 /// <reference path="../diagnosticBag.ts"/>
 namespace Idealang{
     export class Parser {
-        private readonly _tokens: SyntaxToken[] = [];
         private readonly _diagnostics: DiagnosticBag = new DiagnosticBag();
-
+        private readonly _text: SourceText;
+        private readonly _tokens: SyntaxToken[] = [];
         private _position: number = 0;
-        public constructor (text: string) {
 
+        public constructor (text: SourceText) {
+            this._text = text;
             const lexer = new Lexer(text);
             let token: SyntaxToken = new SyntaxToken(SyntaxKind.WhitespaceToken, 0, "", null);
             while (token.kind !== SyntaxKind.EndOfFileToken) {
@@ -24,6 +25,8 @@ namespace Idealang{
             }
             this._diagnostics.add(lexer.diagnostics);
         }
+
+        public get diagnostics (){return this._diagnostics;}
 
         private peek (offset: number): SyntaxToken {
             const index = this._position + offset;
@@ -51,10 +54,49 @@ namespace Idealang{
             return new SyntaxToken(kind, this.current.position, "", null);
         }
 
-        public parse (): SyntaxTree {
-            const expression = this.parseExpression();
+        public parseCompilationUnit (): CompilationUnitSyntax {
+            const statement = this.parseStatement();
             const endOfFileToken = this.matchToken(SyntaxKind.EndOfFileToken);
-            return new SyntaxTree(this._diagnostics.toArray(), expression, endOfFileToken);
+            return new CompilationUnitSyntax(statement, endOfFileToken);
+        }
+
+        private parseStatement (): StatementSyntax{
+            switch(this.current.kind){
+                case SyntaxKind.OpenBraceToken:
+                    return this.parseBlockStatement();
+                case SyntaxKind.LetKeyword:
+                case SyntaxKind.VarKeyword:
+                    return this.parseVariableDeclaration();
+                default:
+                    return this.parseExpressionStatement();
+            }
+        }
+
+        private parseBlockStatement (): BlockStatementSyntax{
+            const statements: StatementSyntax[] = [];
+            const openBraceToken = this.matchToken(SyntaxKind.OpenBraceToken);
+            while(this.current.kind !== SyntaxKind.EndOfFileToken && this.current.kind !== SyntaxKind.CloseBraceToken){
+                const statement = this.parseStatement();
+                statements.push(statement);
+            }
+            const closeBraceToken = this.matchToken(SyntaxKind.CloseBraceToken);
+            return new BlockStatementSyntax(openBraceToken, statements, closeBraceToken);
+        }
+
+        public parseVariableDeclaration (): VariableDeclarationSyntax{
+            const expected = this.current.kind === SyntaxKind.LetKeyword ? SyntaxKind.LetKeyword : SyntaxKind.VarKeyword;
+            const keyword = this.matchToken(expected);
+            const identifier = this.matchToken(SyntaxKind.IdentifierToken);
+            const equalsToken = this.matchToken(SyntaxKind.EqualsToken);
+            const initializer = this.parseExpression();
+            const semicolonToken = this.matchToken(SyntaxKind.SemicolonToken);
+            return new VariableDeclarationSyntax(keyword, identifier, equalsToken, initializer, semicolonToken);
+        }
+
+        private parseExpressionStatement (): ExpressionStatementSyntax{
+            const expression = this.parseExpression();
+            const semiColonToken = this.matchToken(SyntaxKind.SemicolonToken);
+            return new ExpressionStatementSyntax(expression, semiColonToken);
         }
 
         private parseExpression (): ExpressionSyntax {
@@ -66,7 +108,6 @@ namespace Idealang{
                 this.peek(1).kind === SyntaxKind.EqualsToken) {
                 const identifierToken = this.nextToken();
                 const operatorToken = this.nextToken();
-                // change it to parseBinaryExpression in the future
                 const right = this.parseAssignmentExpression();
                 return new AssignmentExpressionSyntax(identifierToken, operatorToken, right);
             }

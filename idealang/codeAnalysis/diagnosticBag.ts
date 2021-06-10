@@ -38,6 +38,21 @@ namespace Idealang{
             this.report(span, message);
         }
 
+        public reportVariableAlreadyDeclared (span: TextSpan, name: string){
+            const message = `Variable '${name}' is already declared.`;
+            this.report(span, message);
+        }
+
+        public reportCannotAssign (span: TextSpan, name: string){
+            const message = `Variable '${name}' is read-only and cannot be assigned to.`;
+            this.report(span, message);
+        }
+
+        public reportCannotConvert (span: TextSpan, fromType: Type, toType: Type){
+            const message = `Cannot convert type '${fromType}' to '${toType}'.`;
+            this.report(span, message);
+        }
+
         public add (diagnostics: DiagnosticBag){
             this._diagnostics.push(...diagnostics._diagnostics);
         }

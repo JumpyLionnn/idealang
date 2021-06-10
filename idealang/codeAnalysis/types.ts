@@ -5,7 +5,7 @@ namespace Idealang{
     export enum Type{
         int = "int",
         float = "float",
-        boolean = "boolean",
+        bool = "bool",
     }
 
     export namespace Type {
@@ -19,7 +19,7 @@ namespace Idealang{
                 }
             }
             else if(typeof data === "boolean"){
-                return Type.boolean;
+                return Type.bool;
             }
             else{
                 throw new Error("Unknown Type.");

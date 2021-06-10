@@ -2,16 +2,52 @@
 ///<reference path="binding/boundUnaryExpression.ts" />
 namespace Idealang{
     export class Evaluator {
-        private readonly _root: BoundExpression;
+        private readonly _root: BoundStatement;
         private readonly _variables: VariablesMap;
-        constructor (root: BoundExpression, variables: VariablesMap) {
+
+        private _lastValue: all;
+        constructor (root: BoundStatement, variables: VariablesMap) {
             this._root = root;
             this._variables = variables;
         }
 
         public evaluate (): all{
-            return this.evaluateExpression(this._root);
+            this.evaluateStatement(this._root);
+            return this._lastValue;
         }
+
+        private evaluateStatement (node: BoundStatement): void{
+            switch(node.kind){
+                case BoundNodeKind.BlockStatement:
+                    this.evaluateBlockStatement(node as BoundBlockStatement);
+                    break;
+                case BoundNodeKind.VariableDeclaration:
+                    this.evaluateVariableDeclaration(node as BoundVariableDeclaration);
+                    break;
+                case BoundNodeKind.ExpressionStatement:
+                    this.evaluateExpressionStatement(node as BoundExpressionStatement);
+                    break;
+                default:
+                    throw new Error(`Unexpected node ${node.kind}`);
+            }
+        }
+
+        private evaluateBlockStatement (statement: BoundBlockStatement){
+            for (let i = 0; i < statement.statements.length; i++) {
+                this.evaluateStatement(statement.statements[i]);
+            }
+        }
+
+        public evaluateVariableDeclaration (node: BoundVariableDeclaration){
+            const value = this.evaluateExpression(node.initializer);
+            this._variables.set(node.variable, value);
+            this._lastValue = value;
+        }
+
+        private evaluateExpressionStatement (statement: BoundExpressionStatement){
+            this._lastValue = this.evaluateExpression(statement.expression);
+        }
+
 
         private evaluateExpression (node: BoundExpression): all{
 
@@ -41,7 +77,8 @@ namespace Idealang{
 
         private evaluateAssignmentExpression (node: BoundAssignmentExpression){
             const value = this.evaluateExpression(node.expression);
-            this._variables.set(node.variable, value);
+            const key = getMapKey(this._variables, (key) => key.name === node.variable.name) || node.variable;
+            this._variables.set(key, value);
             return value;
         }
 

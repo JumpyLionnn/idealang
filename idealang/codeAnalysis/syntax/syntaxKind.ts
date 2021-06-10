@@ -18,11 +18,24 @@ namespace Idealang{
         BangEqualsToken = "BangEqualsToken",
         OpenParenthesisToken = "OpenParenthesisToken",
         CloseParenthesisToken = "CloseParenthesisToken",
+        OpenBraceToken = "OpenBraceToken",
+        CloseBraceToken = "CloseBraceToken",
+        SemicolonToken = "SemicolonToken",
         IdentifierToken = "IdentifierToken",
 
         // keywords
         FalseKeyword = "FalseKeyword",
         TrueKeyword = "TrueKeyword",
+        VarKeyword = "VarKeyword",
+        LetKeyword = "LetKeyword",
+
+        // nodes
+        CompilationUnit = "CompilationUnit",
+
+        // statements
+        BlockStatement = "BlockStatement",
+        ExpressionStatement = "ExpressionStatement",
+        VariableDeclaration = "VariableDeclaration",
 
         // expressions
         LiteralExpression = "LiteralExpression",

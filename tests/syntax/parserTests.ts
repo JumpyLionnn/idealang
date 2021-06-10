@@ -11,7 +11,7 @@ Tests.describe("binary expressions tests", (assert) => {
             const operator2Precedence = Idealang.SyntaxFacts.getBinaryOperatorPrecedence(operator2);
 
             const text = `a ${operator1Text} b ${operator2Text} c`;
-            const expression = Idealang.SyntaxTree.parse(text).root;
+            const expression = parseExpression(text);
 
             const asserting = new Asserting(expression);
             if(operator1Precedence > operator2Precedence){
@@ -47,7 +47,7 @@ Tests.describe("unary expressions tests", (assert) => {
     const unaryOperators = Idealang.SyntaxFacts.getUnaryOperatorsKinds();
     const binaryOperators = Idealang.SyntaxFacts.getBinaryOperatorsKinds();
     for (let i = 0; i < unaryOperators.length; i++) {
-        const unaryOperator = unaryOperators    [i];
+        const unaryOperator = unaryOperators[i];
         const unaryOperatorText = Idealang.SyntaxFacts.getText(unaryOperator) as string;
         const unaryOperatorPrecedence = Idealang.SyntaxFacts.getUnaryOperatorPrecedence(unaryOperator);
         for (let j = 0; j < binaryOperators.length; j++) {
@@ -56,7 +56,7 @@ Tests.describe("unary expressions tests", (assert) => {
             const binaryOperatorPrecedence = Idealang.SyntaxFacts.getBinaryOperatorPrecedence(binaryOperator);
 
             const text = `${unaryOperatorText} a ${binaryOperatorText} b`;
-            const expression = Idealang.SyntaxTree.parse(text).root;
+            const expression = parseExpression(text);
 
             const asserting = new Asserting(expression);
             if(unaryOperatorPrecedence >= binaryOperatorPrecedence){
@@ -82,4 +82,8 @@ Tests.describe("unary expressions tests", (assert) => {
         }
     }
 });
+
+function parseExpression (text: string) {
+    return Idealang.SyntaxTree.parse(text).root.statement;
+}
 
