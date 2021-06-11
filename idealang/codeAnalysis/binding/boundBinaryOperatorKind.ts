@@ -7,6 +7,10 @@ namespace Idealang{
         LogicalAnd = "LogicalAnd",
         LogicalOr = "LogicalOr",
         Equals = "Equals",
-        NotEquals = "NotEquals"
+        NotEquals = "NotEquals",
+        Less = "LessThan",
+        LessOrEquals = "LessOrEquals",
+        Greater = "Great",
+        GreaterOrEquals = "GreatOrEquals"
     }
 }

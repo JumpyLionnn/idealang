@@ -161,7 +161,6 @@ namespace Idealang{
 
         private parseParenthesizedExpression (){
             const left = this.matchToken(SyntaxKind.OpenParenthesisToken);
-            // change it to parseBinaryExpression in the future
             const expression = this.parseAssignmentExpression();
             const right = this.matchToken(SyntaxKind.CloseParenthesisToken);
             return new ParenthesizedExpressionSyntax(left, expression, right);

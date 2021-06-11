@@ -168,6 +168,22 @@ function requiresSeperator (t1Kind: Idealang.SyntaxKind, t2Kind: Idealang.Syntax
         return true;
     }
 
+    if(t1Kind === Idealang.SyntaxKind.LessToken && t2Kind === Idealang.SyntaxKind.EqualsToken){
+        return true;
+    }
+
+    if(t1Kind === Idealang.SyntaxKind.GreaterToken && t2Kind === Idealang.SyntaxKind.EqualsToken){
+        return true;
+    }
+
+    if(t1Kind === Idealang.SyntaxKind.LessToken && t2Kind === Idealang.SyntaxKind.EqualsEqualsToken){
+        return true;
+    }
+
+    if(t1Kind === Idealang.SyntaxKind.GreaterToken && t2Kind === Idealang.SyntaxKind.EqualsEqualsToken){
+        return true;
+    }
+
     return false;
 }
 

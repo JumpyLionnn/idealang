@@ -141,5 +141,19 @@ const data = [
     ["true != true;", false],
     ["true == false;", false],
 
+    ["3 < 4;", true],
+    ["5 < 4;", false],
+    ["4 < 4;", false],
+    ["3 <= 4;", true],
+    ["5 <= 4;", false],
+    ["4 <= 4;", true],
+
+    ["3 > 4;", false],
+    ["5 > 4;", true],
+    ["4 > 4;", false],
+    ["3 >= 4;", false],
+    ["5 >= 4;", true],
+    ["4 >= 4;", true],
+
     ["{var a = 0;(a = 10) * a;}", 100],
 ];

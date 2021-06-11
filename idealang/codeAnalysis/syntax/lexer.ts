@@ -97,11 +97,31 @@ namespace Idealang{
                     break;
                 case "!":
                     this._position++;
-                    if(this.currentChar !== "="){
+                    if((this.currentChar as string) !== "="){
                         this._kind = SyntaxKind.BangToken;
                     }
                     else{
                         this._kind = SyntaxKind.BangEqualsToken;
+                        this._position++;
+                    }
+                    break;
+                case "<":
+                    this._position++;
+                    if((this.currentChar as string) !== "="){
+                        this._kind = SyntaxKind.LessToken;
+                    }
+                    else{
+                        this._kind = SyntaxKind.LessOrEqualsToken;
+                        this._position++;
+                    }
+                    break;
+                case ">":
+                    this._position++;
+                    if((this.currentChar as string) !== "="){
+                        this._kind = SyntaxKind.GreaterToken;
+                    }
+                    else{
+                        this._kind = SyntaxKind.GreaterOrEqualsToken;
                         this._position++;
                     }
                     break;

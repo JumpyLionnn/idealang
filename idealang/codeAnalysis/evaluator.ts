@@ -116,6 +116,14 @@ namespace Idealang{
                     return left === right;
                 case BoundBinaryOperatorKind.NotEquals:
                     return !(left === right);
+                case BoundBinaryOperatorKind.Less:
+                    return left < right;
+                case BoundBinaryOperatorKind.LessOrEquals:
+                    return left <= right;
+                case BoundBinaryOperatorKind.Greater:
+                    return left > right;
+                case BoundBinaryOperatorKind.GreaterOrEquals:
+                    return left >= right;
                 default:
                     throw new Error(`Unexpected binary operator ${node.operator.kind}`);
             }
