@@ -59,6 +59,8 @@ namespace Idealang{
                     return this.bindVariableDeclaration(syntax as VariableDeclarationSyntax);
                 case SyntaxKind.IfStatement:
                     return this.bindIfStatement(syntax as IfStatementSyntax);
+                case SyntaxKind.WhileStatement:
+                    return this.bindWhileStatement(syntax as WhileStatementSyntax);
                 case SyntaxKind.ExpressionStatement:
                     return this.bindExpressionStatement(syntax as ExpressionStatementSyntax);
                 default:
@@ -100,6 +102,16 @@ namespace Idealang{
             }
             const elseStatement = syntax.elseClause !== null ? this.bindStatement(syntax.elseClause.elseStatement) : null;
             return new BoundIfStatement(condition, thenStatement, elseStatement);
+        }
+
+        private bindWhileStatement (syntax: WhileStatementSyntax): BoundWhileStatement{
+            const condition = this.bindParenthesizedExpression(syntax.condition);
+            const body = this.bindStatement(syntax.body);
+
+            if(condition.type !== Type.bool){
+                this._diagnostics.reportCannotConvert(syntax.condition.span, condition.type, Type.bool);
+            }
+            return new BoundWhileStatement(condition, body);
         }
 
         private bindExpressionStatement (syntax: ExpressionStatementSyntax): BoundStatement{

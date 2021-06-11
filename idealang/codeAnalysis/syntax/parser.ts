@@ -69,6 +69,8 @@ namespace Idealang{
                     return this.parseVariableDeclaration();
                 case SyntaxKind.IfKeyword:
                     return this.parseIfStatement();
+                case SyntaxKind.WhileKeyword:
+                    return this.parseWhileStatement();
                 default:
                     return this.parseExpressionStatement();
             }
@@ -98,9 +100,9 @@ namespace Idealang{
         private parseIfStatement (): IfStatementSyntax{
             const ifKeyword = this.matchToken(SyntaxKind.IfKeyword);
             const condition = this.parseParenthesizedExpression();
-            const blockStatement = this.parseStatement();
+            const thenStatement = this.parseStatement();
             const elseClause = this.parseElseClause();
-            return new IfStatementSyntax(ifKeyword, condition, blockStatement, elseClause);
+            return new IfStatementSyntax(ifKeyword, condition, thenStatement, elseClause);
         }
 
         private parseElseClause (): ElseClauseSyntax | null {
@@ -110,6 +112,13 @@ namespace Idealang{
             const elseKeyword = this.nextToken();
             const elseStatement = this.parseStatement();
             return new ElseClauseSyntax(elseKeyword, elseStatement);
+        }
+
+        private parseWhileStatement (): WhileStatementSyntax{
+            const whileKeyword = this.matchToken(SyntaxKind.WhileKeyword);
+            const condition = this.parseParenthesizedExpression();
+            const body = this.parseStatement();
+            return new WhileStatementSyntax(whileKeyword, condition, body);
         }
 
         private parseExpressionStatement (): ExpressionStatementSyntax{

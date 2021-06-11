@@ -13,6 +13,7 @@ namespace Idealang{
         BlockStatement = "BlockStatement",
         ExpressionStatement = "ExpressionStatement",
         VariableDeclaration = "VariableDeclaration",
-        IfStatement = "IfStatement"
+        IfStatement = "IfStatement",
+        WhileStatement = "WhileStatement"
     }
 }

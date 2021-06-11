@@ -27,6 +27,9 @@ namespace Idealang{
                 case BoundNodeKind.IfStatement:
                     this.evaluateIfStatement(node as BoundIfStatement);
                     break;
+                case BoundNodeKind.WhileStatement:
+                    this.evaluateWhileStatement(node as BoundWhileStatement);
+                    break;
                 case BoundNodeKind.ExpressionStatement:
                     this.evaluateExpressionStatement(node as BoundExpressionStatement);
                     break;
@@ -54,6 +57,12 @@ namespace Idealang{
             }
             else if(node.elseStatement !== null){
                 this.evaluateStatement(node.elseStatement);
+            }
+        }
+
+        private evaluateWhileStatement (node: BoundWhileStatement){
+            while (this.evaluateExpression(node.condition) as boolean) {
+                this.evaluateStatement(node.body);
             }
         }
 
