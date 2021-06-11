@@ -67,6 +67,8 @@ namespace Idealang{
                 case SyntaxKind.LetKeyword:
                 case SyntaxKind.VarKeyword:
                     return this.parseVariableDeclaration();
+                case SyntaxKind.IfKeyword:
+                    return this.parseIfStatement();
                 default:
                     return this.parseExpressionStatement();
             }
@@ -83,7 +85,7 @@ namespace Idealang{
             return new BlockStatementSyntax(openBraceToken, statements, closeBraceToken);
         }
 
-        public parseVariableDeclaration (): VariableDeclarationSyntax{
+        private parseVariableDeclaration (): VariableDeclarationSyntax{
             const expected = this.current.kind === SyntaxKind.LetKeyword ? SyntaxKind.LetKeyword : SyntaxKind.VarKeyword;
             const keyword = this.matchToken(expected);
             const identifier = this.matchToken(SyntaxKind.IdentifierToken);
@@ -91,6 +93,23 @@ namespace Idealang{
             const initializer = this.parseExpression();
             const semicolonToken = this.matchToken(SyntaxKind.SemicolonToken);
             return new VariableDeclarationSyntax(keyword, identifier, equalsToken, initializer, semicolonToken);
+        }
+
+        private parseIfStatement (): IfStatementSyntax{
+            const ifKeyword = this.matchToken(SyntaxKind.IfKeyword);
+            const condition = this.parseParenthesizedExpression();
+            const blockStatement = this.parseStatement();
+            const elseClause = this.parseElseClause();
+            return new IfStatementSyntax(ifKeyword, condition, blockStatement, elseClause);
+        }
+
+        private parseElseClause (): ElseClauseSyntax | null {
+            if(this.current.kind !== SyntaxKind.ElseKeyword){
+                return null;
+            }
+            const elseKeyword = this.nextToken();
+            const elseStatement = this.parseStatement();
+            return new ElseClauseSyntax(elseKeyword, elseStatement);
         }
 
         private parseExpressionStatement (): ExpressionStatementSyntax{

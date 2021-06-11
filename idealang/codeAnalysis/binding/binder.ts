@@ -57,6 +57,8 @@ namespace Idealang{
                     return this.bindBlockStatement(syntax as BlockStatementSyntax);
                 case SyntaxKind.VariableDeclaration:
                     return this.bindVariableDeclaration(syntax as VariableDeclarationSyntax);
+                case SyntaxKind.IfStatement:
+                    return this.bindIfStatement(syntax as IfStatementSyntax);
                 case SyntaxKind.ExpressionStatement:
                     return this.bindExpressionStatement(syntax as ExpressionStatementSyntax);
                 default:
@@ -64,7 +66,7 @@ namespace Idealang{
             }
         }
 
-        private bindBlockStatement (syntax: BlockStatementSyntax): BoundStatement{
+        private bindBlockStatement (syntax: BlockStatementSyntax): BoundBlockStatement{
             const statements: BoundStatement[] = [];
 
             this._scope = new BoundScope(this._scope);
@@ -77,7 +79,7 @@ namespace Idealang{
             return new BoundBlockStatement(statements);
         }
 
-        public bindVariableDeclaration (syntax: VariableDeclarationSyntax): BoundVariableDeclaration{
+        private bindVariableDeclaration (syntax: VariableDeclarationSyntax): BoundVariableDeclaration{
             const name = syntax.identifier.text;
             const isReadOnly = syntax.keyword.kind === SyntaxKind.LetKeyword;
             const initializer = this.bindExpression(syntax.initializer);
@@ -87,6 +89,17 @@ namespace Idealang{
                 this.diagnostics.reportVariableAlreadyDeclared(syntax.identifier.span, name);
             }
             return new BoundVariableDeclaration(variable, initializer);
+        }
+
+        private bindIfStatement (syntax: IfStatementSyntax): BoundIfStatement{
+            const condition = this.bindParenthesizedExpression(syntax.condition);
+            const thenStatement = this.bindStatement(syntax.thenStatement);
+
+            if(condition.type !== Type.bool){
+                this._diagnostics.reportCannotConvert(syntax.condition.span, condition.type, Type.bool);
+            }
+            const elseStatement = syntax.elseClause !== null ? this.bindStatement(syntax.elseClause.elseStatement) : null;
+            return new BoundIfStatement(condition, thenStatement, elseStatement);
         }
 
         private bindExpressionStatement (syntax: ExpressionStatementSyntax): BoundStatement{

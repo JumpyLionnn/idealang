@@ -32,6 +32,8 @@ namespace Idealang{
         TrueKeyword = "TrueKeyword",
         VarKeyword = "VarKeyword",
         LetKeyword = "LetKeyword",
+        IfKeyword = "IfKeyword",
+        ElseKeyword = "ElseKeyword",
 
         // nodes
         CompilationUnit = "CompilationUnit",
@@ -40,6 +42,8 @@ namespace Idealang{
         BlockStatement = "BlockStatement",
         ExpressionStatement = "ExpressionStatement",
         VariableDeclaration = "VariableDeclaration",
+        IfStatement = "IfStatement",
+        ElseClause = "ElseClause",
 
         // expressions
         LiteralExpression = "LiteralExpression",

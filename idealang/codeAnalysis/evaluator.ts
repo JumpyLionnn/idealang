@@ -24,6 +24,9 @@ namespace Idealang{
                 case BoundNodeKind.VariableDeclaration:
                     this.evaluateVariableDeclaration(node as BoundVariableDeclaration);
                     break;
+                case BoundNodeKind.IfStatement:
+                    this.evaluateIfStatement(node as BoundIfStatement);
+                    break;
                 case BoundNodeKind.ExpressionStatement:
                     this.evaluateExpressionStatement(node as BoundExpressionStatement);
                     break;
@@ -38,10 +41,20 @@ namespace Idealang{
             }
         }
 
-        public evaluateVariableDeclaration (node: BoundVariableDeclaration){
+        private evaluateVariableDeclaration (node: BoundVariableDeclaration){
             const value = this.evaluateExpression(node.initializer);
             this._variables.set(node.variable, value);
             this._lastValue = value;
+        }
+
+        private evaluateIfStatement (node: BoundIfStatement){
+            const conditionResult = this.evaluateExpression(node.condition) as boolean;
+            if(conditionResult){
+                this.evaluateStatement(node.thenStatement);
+            }
+            else if(node.elseStatement !== null){
+                this.evaluateStatement(node.elseStatement);
+            }
         }
 
         private evaluateExpressionStatement (statement: BoundExpressionStatement){
