@@ -77,6 +77,69 @@ Tests.describe("evaluator assignment reports cannot convert", (assert) => {
     assertDiagnostics(assert, text, diagnostics);
 });
 
+Tests.describe("evaluator if statement reports cannot convert", (assert) => {
+    const text = `
+    {
+        if[(1 + 2)]{
+            var i = 0;
+        }
+    }
+    `;
+
+    const diagnostics = "Cannot convert type 'int' to 'bool'.";
+
+    assertDiagnostics(assert, text, diagnostics);
+});
+
+
+Tests.describe("evaluator while statement reports cannot convert", (assert) => {
+    const text = `
+    {
+        while[(1 + 2)]{
+            var i = 0;
+        }
+    }
+    `;
+
+    const diagnostics = "Cannot convert type 'int' to 'bool'.";
+
+    assertDiagnostics(assert, text, diagnostics);
+});
+
+
+
+Tests.describe("evaluator for statement lower bound reports cannot convert", (assert) => {
+    const text = `
+    {   
+        var result = 0;
+        for i = [false] to 10{
+            result = result + i;
+        }
+    }
+    `;
+
+    const diagnostics = "Cannot convert type 'bool' to 'int'.";
+
+    assertDiagnostics(assert, text, diagnostics);
+});
+
+Tests.describe("evaluator for statement upper bound reports cannot convert", (assert) => {
+    const text = `
+    {   
+        var result = 0;
+        for i = 0 to [true]{
+            result = result + i;
+        }
+    }
+    `;
+
+    const diagnostics = "Cannot convert type 'bool' to 'int'.";
+
+    assertDiagnostics(assert, text, diagnostics);
+});
+
+
+
 
 Tests.describe("evaluator unary reports undefined", (assert) => {
     const text = "[+]true;";
@@ -163,4 +226,5 @@ const data = [
     ["{var a = 0;if(a == 4){a = 10;}else{a = 5;}a;}", 5],
 
     ["{var i = 10; var result = 0; while(i > 0){result = result + i; i = i - 1;}result;}", 55],
+    ["{var result = 0; for i = 0 to 10{result = result + i;}}", 55],
 ];

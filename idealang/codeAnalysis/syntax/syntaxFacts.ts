@@ -56,6 +56,10 @@ namespace Idealang{
                     return SyntaxKind.IfKeyword;
                 case "else":
                     return SyntaxKind.ElseKeyword;
+                case "for":
+                    return SyntaxKind.ForKeyword;
+                case "to":
+                    return SyntaxKind.ToKeyword;
                 case "while":
                     return SyntaxKind.WhileKeyword;
                 default:
@@ -139,6 +143,10 @@ namespace Idealang{
                     return "if";
                 case SyntaxKind.ElseKeyword:
                     return "else";
+                case SyntaxKind.ForKeyword:
+                    return "for";
+                case SyntaxKind.ToKeyword:
+                    return "to";
                 case SyntaxKind.WhileKeyword:
                     return "while";
                 default:

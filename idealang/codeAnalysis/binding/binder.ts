@@ -61,6 +61,8 @@ namespace Idealang{
                     return this.bindIfStatement(syntax as IfStatementSyntax);
                 case SyntaxKind.WhileStatement:
                     return this.bindWhileStatement(syntax as WhileStatementSyntax);
+                case SyntaxKind.ForStatement:
+                    return this.bindForStatement(syntax as ForStatementSyntax);
                 case SyntaxKind.ExpressionStatement:
                     return this.bindExpressionStatement(syntax as ExpressionStatementSyntax);
                 default:
@@ -114,9 +116,33 @@ namespace Idealang{
             return new BoundWhileStatement(condition, body);
         }
 
+        private bindForStatement (syntax: ForStatementSyntax): BoundForStatement{
+            const lowerBound = this.bindTargetExpression(syntax.lowerBound, Type.int);
+            const upperBound = this.bindTargetExpression(syntax.upperBound, Type.int);
+
+            this._scope = new BoundScope(this._scope);
+            const name = syntax.identifier.text;
+            const variable = new VariableSymbol(name, true, Type.int);
+            if(!this._scope.tryDeclare(variable)){
+                this.diagnostics.reportVariableAlreadyDeclared(syntax.identifier.span, name);
+            }
+            const body = this.bindStatement(syntax.body);
+            this._scope = this._scope.parent as BoundScope;
+
+            return new BoundForStatement(variable, lowerBound, upperBound, body);
+        }
+
         private bindExpressionStatement (syntax: ExpressionStatementSyntax): BoundStatement{
             const expression = this.bindExpression(syntax.expression);
             return new BoundExpressionStatement(expression);
+        }
+
+        private bindTargetExpression (syntax: ExpressionSyntax, targetType: Type): BoundExpression{
+            const result = this.bindExpression(syntax);
+            if(result.type !== targetType){
+                this._diagnostics.reportCannotConvert(syntax.span, result.type, targetType);
+            }
+            return result;
         }
 
         private bindExpression (syntax: ExpressionSyntax): BoundExpression{

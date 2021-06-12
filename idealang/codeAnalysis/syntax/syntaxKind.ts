@@ -34,6 +34,8 @@ namespace Idealang{
         LetKeyword = "LetKeyword",
         IfKeyword = "IfKeyword",
         ElseKeyword = "ElseKeyword",
+        ForKeyword = "ForKeyword",
+        ToKeyword = "ToKeyword",
         WhileKeyword = "WhileKeyword",
 
         // nodes
@@ -45,6 +47,7 @@ namespace Idealang{
         VariableDeclaration = "VariableDeclaration",
         IfStatement = "IfStatement",
         ElseClause = "ElseClause",
+        ForStatement = "ForStatement",
         WhileStatement = "WhileStatement",
 
         // expressions

@@ -14,6 +14,7 @@ namespace Idealang{
         ExpressionStatement = "ExpressionStatement",
         VariableDeclaration = "VariableDeclaration",
         IfStatement = "IfStatement",
-        WhileStatement = "WhileStatement"
+        WhileStatement = "WhileStatement",
+        ForStatement = "ForStatement"
     }
 }

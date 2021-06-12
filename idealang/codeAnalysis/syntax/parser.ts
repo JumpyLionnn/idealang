@@ -71,6 +71,8 @@ namespace Idealang{
                     return this.parseIfStatement();
                 case SyntaxKind.WhileKeyword:
                     return this.parseWhileStatement();
+                case SyntaxKind.ForKeyword:
+                    return this.parseForStatement();
                 default:
                     return this.parseExpressionStatement();
             }
@@ -119,6 +121,17 @@ namespace Idealang{
             const condition = this.parseParenthesizedExpression();
             const body = this.parseStatement();
             return new WhileStatementSyntax(whileKeyword, condition, body);
+        }
+
+        private parseForStatement (): ForStatementSyntax{
+            const forKeyword = this.matchToken(SyntaxKind.ForKeyword);
+            const identifier = this.matchToken(SyntaxKind.IdentifierToken);
+            const equalsToken = this.matchToken(SyntaxKind.EqualsToken);
+            const lowerBound = this.parseExpression();
+            const toKeyword = this.matchToken(SyntaxKind.ToKeyword);
+            const upperBound = this.parseExpression();
+            const body = this.parseStatement();
+            return new ForStatementSyntax(forKeyword, identifier, equalsToken, lowerBound, toKeyword, upperBound, body);
         }
 
         private parseExpressionStatement (): ExpressionStatementSyntax{
