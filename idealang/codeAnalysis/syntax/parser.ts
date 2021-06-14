@@ -81,9 +81,15 @@ namespace Idealang{
         private parseBlockStatement (): BlockStatementSyntax{
             const statements: StatementSyntax[] = [];
             const openBraceToken = this.matchToken(SyntaxKind.OpenBraceToken);
+            let startToken = this.current;
             while(this.current.kind !== SyntaxKind.EndOfFileToken && this.current.kind !== SyntaxKind.CloseBraceToken){
                 const statement = this.parseStatement();
                 statements.push(statement);
+
+                if(this.current === startToken){
+                    this.nextToken();
+                }
+                startToken = this.current;
             }
             const closeBraceToken = this.matchToken(SyntaxKind.CloseBraceToken);
             return new BlockStatementSyntax(openBraceToken, statements, closeBraceToken);

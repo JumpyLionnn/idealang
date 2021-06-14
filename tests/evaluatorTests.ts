@@ -34,10 +34,36 @@ Tests.describe("evaluator variable declarion reports redeclarations", (assert) =
     assertDiagnostics(assert, text, diagnostics);
 });
 
+Tests.describe("evaluator block statement no infinite loop", (assert) => {
+    const text = `
+    {
+    [[)]][]
+    `;
+
+    const diagnostics = `
+    Unexpected token <CloseParenthesisToken> expected <IdentifierToken>.
+    Unexpected token <CloseParenthesisToken> expected <SemicolonToken>.
+    Unexpected token <EndOfFileToken> expected <CloseBraceToken>.
+    `;
+
+    assertDiagnostics(assert, text, diagnostics);
+});
+
 Tests.describe("evaluator name reports undefined", (assert) => {
     const text = "[x] * 10;";
 
     const diagnostics = "Variable 'x' doesn't exist.";
+
+    assertDiagnostics(assert, text, diagnostics);
+});
+
+Tests.describe("evaluator name reports no error for inserted token", (assert) => {
+    const text = "[][]";
+
+    const diagnostics = `
+    Unexpected token <EndOfFileToken> expected <IdentifierToken>.
+    Unexpected token <EndOfFileToken> expected <SemicolonToken>.
+    `;
 
     assertDiagnostics(assert, text, diagnostics);
 });

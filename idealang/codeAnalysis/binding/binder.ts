@@ -181,7 +181,10 @@ namespace Idealang{
 
         private bindNameExpression (syntax: NameExpressionSyntax): BoundExpression{
             const name = syntax.identifierToken.text;
-           const variable = this._scope.tryLookup(name);
+            if(name === "" || name === null){
+                return new BoundLiteralExpression(0);
+            }
+            const variable = this._scope.tryLookup(name);
             if(variable === null){
                 this._diagnostics.reportUndefinedName(syntax.identifierToken.span, name);
                 return new BoundLiteralExpression(0);
