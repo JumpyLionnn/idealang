@@ -13,5 +13,9 @@ namespace Idealang{
 
         public get operator (){return this._operator;}
         public get operand (){return this._operand;}
+
+        public getChildren (){
+            return [this._operand];
+        }
     }
 }

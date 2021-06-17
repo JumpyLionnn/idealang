@@ -11,5 +11,9 @@ namespace Idealang{
 
         public get condition (){return this._condition;}
         public get body (){return this._body;}
+
+        public getChildren (){
+            return [this._condition, this._body];
+        }
     }
 }

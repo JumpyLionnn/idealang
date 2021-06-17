@@ -1,3 +1,3 @@
 namespace Idealang{
-    export class BoundStatement extends BoundNode {}
+    export abstract class BoundStatement extends BoundNode {}
 }

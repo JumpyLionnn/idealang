@@ -12,5 +12,9 @@ namespace Idealang{
 
         public get variable (): VariableSymbol{return this._variable;}
         public get expression (): BoundExpression{return this._expression;}
+
+        public getChildren (){
+            return [this._expression];
+        }
     }
 }

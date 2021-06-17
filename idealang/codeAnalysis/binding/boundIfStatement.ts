@@ -14,5 +14,13 @@ namespace Idealang{
         public get condition (){return this._condition;}
         public get thenStatement (){return this._thenStatement;}
         public get elseStatement (){return this._elseStatement;}
+
+        public getChildren (){
+            const children = [this._condition, this._thenStatement];
+            if(this._elseStatement !== null){
+                children.push(this._elseStatement);
+            }
+            return children;
+        }
     }
 }

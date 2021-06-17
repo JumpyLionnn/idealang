@@ -9,5 +9,9 @@ namespace Idealang{
         }
 
         public get variable (): VariableSymbol{return this._variable;}
+
+        public getChildren (){
+            return [];
+        }
     }
 }

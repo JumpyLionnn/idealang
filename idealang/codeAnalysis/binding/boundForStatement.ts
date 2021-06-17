@@ -18,5 +18,9 @@ namespace Idealang{
     public get upperBound (){return this._upperBound;}
     public get body (){return this._body;}
 
+    public getChildren (){
+      return [this._lowerBound, this._upperBound, this._body];
+    }
+
   }
 }

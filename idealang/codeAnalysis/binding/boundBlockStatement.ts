@@ -9,5 +9,9 @@ namespace Idealang{
         }
 
         public get statements (){return this._statements;}
+
+        public getChildren (){
+            return this._statements;
+        }
     }
 }

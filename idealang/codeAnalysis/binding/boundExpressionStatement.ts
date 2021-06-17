@@ -9,5 +9,9 @@ namespace Idealang{
         }
 
         public get expression (){return this._expression;}
+
+        public getChildren (){
+            return [this._expression];
+        }
     }
 }

@@ -11,5 +11,9 @@ namespace Idealang{
 
         public get variable (){return this._variable;}
         public get initializer (){return this._initializer;}
+
+        public getChildren (){
+            return [this._initializer];
+        }
     }
 }

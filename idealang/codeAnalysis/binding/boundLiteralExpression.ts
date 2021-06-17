@@ -11,5 +11,9 @@ namespace Idealang{
         }
 
         public get value (){return this._value;}
+
+        public getChildren (){
+            return [];
+        }
     }
 }

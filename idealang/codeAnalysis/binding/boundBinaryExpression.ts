@@ -16,5 +16,9 @@ namespace Idealang{
         public get left (){return this._left;}
         public get operator (){return this._operator;}
         public get right (){return this._right;}
+
+        public getChildren (){
+            return [this._left, this._right];
+        }
     }
 }
