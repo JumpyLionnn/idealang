@@ -30,9 +30,6 @@ namespace Idealang{
                 case BoundNodeKind.WhileStatement:
                     this.evaluateWhileStatement(node as BoundWhileStatement);
                     break;
-                case BoundNodeKind.ForStatement:
-                    this.evaluateForStatement(node as BoundForStatement);
-                    break;
                 case BoundNodeKind.ExpressionStatement:
                     this.evaluateExpressionStatement(node as BoundExpressionStatement);
                     break;
@@ -68,16 +65,6 @@ namespace Idealang{
                 this.evaluateStatement(node.body);
             }
         }
-
-        private evaluateForStatement (node: BoundForStatement){
-            const lowerBound = this.evaluateExpression(node.lowerBound) as number;
-            const upperBound = this.evaluateExpression(node.upperBound) as number;
-            for (let i = lowerBound; i <= upperBound; i++) {
-                this._variables.set(node.variable, i);
-                this.evaluateStatement(node.body);
-            }
-        }
-
         private evaluateExpressionStatement (statement: BoundExpressionStatement){
             this._lastValue = this.evaluateExpression(statement.expression);
         }
