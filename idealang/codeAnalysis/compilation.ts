@@ -36,9 +36,13 @@ namespace Idealang{
                 return new EvaluationResult(diagnostics);
             }
 
-            const evaluator = new Evaluator(this.globalScope.statement, variables);
+            const statement = this.getStatement();
+            const evaluator = new Evaluator(statement, variables);
             const value = evaluator.evaluate();
             return new EvaluationResult([], value);
+        }
+        private getStatement () {
+            return Lowerer.lower(this.globalScope.statement);
         }
     }
 }
