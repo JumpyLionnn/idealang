@@ -12,5 +12,9 @@ namespace Idealang{
         public get name (): string{return this._name;}
         public get isReadOnly (): boolean{return this._isReadOnly;}
         public get type (): Type{return this._type;}
+
+        public toString (): string{
+            return this._name;
+        }
     }
 }

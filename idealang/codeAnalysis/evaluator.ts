@@ -2,46 +2,60 @@
 ///<reference path="binding/boundUnaryExpression.ts" />
 namespace Idealang{
     export class Evaluator {
-        private readonly _root: BoundStatement;
+        private readonly _root: BoundBlockStatement;
         private readonly _variables: VariablesMap;
 
         private _lastValue: all;
-        constructor (root: BoundStatement, variables: VariablesMap) {
+        constructor (root: BoundBlockStatement, variables: VariablesMap) {
             this._root = root;
             this._variables = variables;
         }
 
         public evaluate (): all{
-            this.evaluateStatement(this._root);
+            const labelToIndex = new Map<LabelSymbol, number>();
+
+            for (let i = 0; i < this._root.statements.length; i++) {
+                const statement = this._root.statements[i];
+                if(statement instanceof BoundLabelStatement){
+                    labelToIndex.set(statement.label, i + 1);
+                }
+            }
+
+            let index = 0;
+            while (index < this._root.statements.length) {
+                const node = this._root.statements[index];
+                switch(node.kind){
+                    case BoundNodeKind.VariableDeclaration:
+                        this.evaluateVariableDeclaration(node as BoundVariableDeclaration);
+                        index++;
+                        break;
+                    case BoundNodeKind.ExpressionStatement:
+                        this.evaluateExpressionStatement(node as BoundExpressionStatement);
+                        index++;
+                        break;
+                    case BoundNodeKind.GoToStatement:
+                        const goToStatement = node as BoundGoToStatement;
+                        index = labelToIndex.get(goToStatement.label) as number;
+                        break;
+                    case BoundNodeKind.ConditionalGoToStatement:
+                        const conditionalGoToStatement = node as BoundConditionalGoToStatement;
+                        const condition = this.evaluateExpression(conditionalGoToStatement.condition);
+                        if(condition && !conditionalGoToStatement.jumpIfFalse || !condition && conditionalGoToStatement.jumpIfFalse){
+                            index = labelToIndex.get(conditionalGoToStatement.label) as number;
+                        }
+                        else{
+                            index++;
+                        }
+                        break;
+                    case BoundNodeKind.LabelStatement:
+                        index++;
+                        break;
+                    default:
+                        throw new Error(`Unexpected node ${node.kind}`);
+                }
+            }
+
             return this._lastValue;
-        }
-
-        private evaluateStatement (node: BoundStatement): void{
-            switch(node.kind){
-                case BoundNodeKind.BlockStatement:
-                    this.evaluateBlockStatement(node as BoundBlockStatement);
-                    break;
-                case BoundNodeKind.VariableDeclaration:
-                    this.evaluateVariableDeclaration(node as BoundVariableDeclaration);
-                    break;
-                case BoundNodeKind.IfStatement:
-                    this.evaluateIfStatement(node as BoundIfStatement);
-                    break;
-                case BoundNodeKind.WhileStatement:
-                    this.evaluateWhileStatement(node as BoundWhileStatement);
-                    break;
-                case BoundNodeKind.ExpressionStatement:
-                    this.evaluateExpressionStatement(node as BoundExpressionStatement);
-                    break;
-                default:
-                    throw new Error(`Unexpected node ${node.kind}`);
-            }
-        }
-
-        private evaluateBlockStatement (statement: BoundBlockStatement){
-            for (let i = 0; i < statement.statements.length; i++) {
-                this.evaluateStatement(statement.statements[i]);
-            }
         }
 
         private evaluateVariableDeclaration (node: BoundVariableDeclaration){
@@ -50,21 +64,6 @@ namespace Idealang{
             this._lastValue = value;
         }
 
-        private evaluateIfStatement (node: BoundIfStatement){
-            const conditionResult = this.evaluateExpression(node.condition) as boolean;
-            if(conditionResult){
-                this.evaluateStatement(node.thenStatement);
-            }
-            else if(node.elseStatement !== null){
-                this.evaluateStatement(node.elseStatement);
-            }
-        }
-
-        private evaluateWhileStatement (node: BoundWhileStatement){
-            while (this.evaluateExpression(node.condition) as boolean) {
-                this.evaluateStatement(node.body);
-            }
-        }
         private evaluateExpressionStatement (statement: BoundExpressionStatement){
             this._lastValue = this.evaluateExpression(statement.expression);
         }

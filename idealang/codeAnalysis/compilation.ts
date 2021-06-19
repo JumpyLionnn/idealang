@@ -41,7 +41,7 @@ namespace Idealang{
             const value = evaluator.evaluate();
             return new EvaluationResult([], value);
         }
-        private getStatement () {
+        private getStatement (): BoundBlockStatement {
             return Lowerer.lower(this.globalScope.statement);
         }
     }

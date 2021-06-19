@@ -13,6 +13,14 @@ namespace Idealang {
                     return this.rewriteWhileStatement(node as BoundWhileStatement);
                 case BoundNodeKind.ForStatement:
                     return this.rewriteForStatement(node as BoundForStatement);
+
+                case BoundNodeKind.LabelStatement:
+                    return this.rewriteLabelStatement(node as BoundLabelStatement);
+                case BoundNodeKind.GoToStatement:
+                    return this.rewriteGoToStatement(node as BoundGoToStatement);
+                case BoundNodeKind.ConditionalGoToStatement:
+                    return this.rewriteConditionalGoToStatement(node as BoundConditionalGoToStatement);
+
                 case BoundNodeKind.ExpressionStatement:
                     return this.rewriteExpressionStatement(node as BoundExpressionStatement);
                 default:
@@ -36,10 +44,9 @@ namespace Idealang {
                 if(statements !== null){
                     statements.push(newStatement);
                 }
-
-                if(statements === null){
-                    return node;
-                }
+            }
+            if(statements === null){
+                return node;
             }
             return new BoundBlockStatement(statements as BoundStatement[]);
         }
@@ -79,6 +86,22 @@ namespace Idealang {
                 return node;
             }
             return new BoundForStatement(node.variable, lowerBound, upperBound, body);
+        }
+
+        protected rewriteLabelStatement (node: BoundLabelStatement): BoundStatement {
+            return node;
+        }
+
+        protected rewriteGoToStatement (node: BoundGoToStatement): BoundStatement {
+            return node;
+        }
+
+        protected rewriteConditionalGoToStatement (node: BoundConditionalGoToStatement): BoundStatement {
+            const condition = this.rewriteExpression(node.condition);
+            if(node.condition === condition){
+                return node;
+            }
+            return new BoundConditionalGoToStatement(node.label, condition, node.jumpIfFalse);
         }
 
         protected rewriteExpressionStatement (node: BoundExpressionStatement): BoundStatement {

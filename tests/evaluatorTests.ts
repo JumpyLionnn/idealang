@@ -252,5 +252,5 @@ const data = [
     ["{var a = 0;if(a == 4){a = 10;}else{a = 5;}a;}", 5],
 
     ["{var i = 10; var result = 0; while(i > 0){result = result + i; i = i - 1;}result;}", 55],
-    ["{var result = 0; for i = 0 to 10{result = result + i;}}", 55],
+    ["{var result = 0; for i = 0 to 10{result = result + i;}result;}", 55],
 ];
