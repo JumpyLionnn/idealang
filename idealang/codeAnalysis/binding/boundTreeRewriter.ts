@@ -101,7 +101,7 @@ namespace Idealang {
             if(node.condition === condition){
                 return node;
             }
-            return new BoundConditionalGoToStatement(node.label, condition, node.jumpIfFalse);
+            return new BoundConditionalGoToStatement(node.label, condition, node.jumpIfTrue);
         }
 
         protected rewriteExpressionStatement (node: BoundExpressionStatement): BoundStatement {

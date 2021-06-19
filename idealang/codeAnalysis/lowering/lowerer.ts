@@ -41,7 +41,7 @@ namespace Idealang {
         protected rewriteIfStatement (node: BoundIfStatement): BoundStatement{
             if(node.elseStatement === null){
                 const endLabel = this.generateLabel();
-                const gotoFalse = new BoundConditionalGoToStatement(endLabel, node.condition, true);
+                const gotoFalse = new BoundConditionalGoToStatement(endLabel, node.condition, false);
                 const endLabelStatement = new BoundLabelStatement(endLabel);
                 const result = new BoundBlockStatement([gotoFalse, node.thenStatement, endLabelStatement]);
                 return this.rewriteStatement(result);
@@ -50,7 +50,7 @@ namespace Idealang {
                 const elseLabel = this.generateLabel();
                 const endLabel = this.generateLabel();
 
-                const gotoFalse = new BoundConditionalGoToStatement(elseLabel, node.condition, true);
+                const gotoFalse = new BoundConditionalGoToStatement(elseLabel, node.condition, false);
                 const gotoEndStatement = new BoundGoToStatement(endLabel);
                 const elseLabelStatement = new BoundLabelStatement(elseLabel);
                 const endLabelStatement = new BoundLabelStatement(endLabel);
@@ -75,7 +75,7 @@ namespace Idealang {
             const gotoCheck = new BoundGoToStatement(checkLabel);
             const continueLabelStatement = new BoundLabelStatement(continueLabel);
             const checkLabelStatement =  new BoundLabelStatement(checkLabel);
-            const gotoTrue = new BoundConditionalGoToStatement(continueLabel, node.condition, false);
+            const gotoTrue = new BoundConditionalGoToStatement(continueLabel, node.condition, true);
             const endLabelStatement =  new BoundLabelStatement(endLabel);
             const result = new BoundBlockStatement([
                 gotoCheck,
@@ -91,10 +91,12 @@ namespace Idealang {
         protected rewriteForStatement (node: BoundForStatement): BoundStatement {
             const variableDeclaration = new BoundVariableDeclaration(node.variable, node.lowerBound);
             const variableExpression = new BoundVariableExpression(node.variable);
+            const upperBoundSymbol = new VariableSymbol("upperBound", true, Type.int);
+            const upperBoundDeclaration = new BoundVariableDeclaration(upperBoundSymbol, node.upperBound);
             const condition = new BoundBinaryExpression(
                 variableExpression,
                 BoundBinaryOperator.bind(SyntaxKind.LessOrEqualsToken, Type.int, Type.int) as BoundBinaryOperator,
-                node.upperBound
+                new BoundVariableExpression(upperBoundSymbol)
             );
             const increment = new BoundExpressionStatement(
                 new BoundAssignmentExpression(
@@ -109,7 +111,7 @@ namespace Idealang {
 
             const whileBody = new BoundBlockStatement([node.body, increment]);
             const whileStatement = new BoundWhileStatement(condition, whileBody);
-            const result = new BoundBlockStatement([variableDeclaration, whileStatement]);
+            const result = new BoundBlockStatement([variableDeclaration, upperBoundDeclaration, whileStatement]);
             return this.rewriteStatement(result);
         }
     }

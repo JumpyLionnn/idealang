@@ -40,7 +40,7 @@ namespace Idealang{
                     case BoundNodeKind.ConditionalGoToStatement:
                         const conditionalGoToStatement = node as BoundConditionalGoToStatement;
                         const condition = this.evaluateExpression(conditionalGoToStatement.condition);
-                        if(condition && !conditionalGoToStatement.jumpIfFalse || !condition && conditionalGoToStatement.jumpIfFalse){
+                        if(condition === conditionalGoToStatement.jumpIfTrue){
                             index = labelToIndex.get(conditionalGoToStatement.label) as number;
                         }
                         else{
