@@ -44,5 +44,9 @@ namespace Idealang{
         private getStatement (): BoundBlockStatement {
             return Lowerer.lower(this.globalScope.statement);
         }
+
+        public emitTree (builder: TextBuilder){
+            this.globalScope.statement.writeTo(builder);
+        }
     }
 }

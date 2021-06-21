@@ -1,3 +1,6 @@
+
+const cConsole = Idealang.Console;
+
 class Tests {
     private static tests: Test[] = [];
     private static duration: number;
@@ -35,16 +38,18 @@ class Tests {
             }
         }
 
-        console.error("%c" + errors, "color:red;");
+        cConsole.error(errors);
 
-        console.log(`Total tests: ${testsNumber} Passed: ${testsPassed} Failed: ${testsFailed}`);
+        cConsole.log(`Total tests: ${testsNumber} Passed: ${testsPassed} Failed: ${testsFailed}`);
         if(testsFailed > 0){
-            console.error("%cTest Run Failed", "color:red;");
+            cConsole.error("Test Run Failed");
         }
         else{
-            console.error("%cTest Run Successful", "color:green;");
+            cConsole.color = Idealang.ConsoleColor.FgGreen;
+            cConsole.log("Test Run Successful");
+            cConsole.resetColor();
         }
-        console.log(`Test execution time: ${this.duration}s`);
+        cConsole.log(`Test execution time: ${this.duration}s`);
     }
 }
 
