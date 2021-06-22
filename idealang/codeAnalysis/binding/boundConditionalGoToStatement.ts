@@ -1,9 +1,9 @@
 namespace Idealang{
     export class BoundConditionalGoToStatement extends BoundStatement{
-        private _label: LabelSymbol;
+        private _label: BoundLabel;
         private _condition: BoundExpression;
         private _jumpIfTrue: boolean;
-        public constructor (label: LabelSymbol, condition: BoundExpression, jumpIfTrue: boolean){
+        public constructor (label: BoundLabel, condition: BoundExpression, jumpIfTrue: boolean){
             super();
             this._label = label;
             this._condition = condition;

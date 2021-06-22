@@ -1,5 +1,5 @@
 namespace Idealang{
-    export class LabelSymbol{
+    export class BoundLabel{
         private _name: string;
         constructor (name: string){
             this._name = name;

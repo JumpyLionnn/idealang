@@ -1,7 +1,7 @@
 namespace Idealang{
     export class BoundGoToStatement extends BoundStatement{
-        private _label: LabelSymbol;
-        public constructor (label: LabelSymbol){
+        private _label: BoundLabel;
+        public constructor (label: BoundLabel){
             super();
             this._label = label;
             this._kind = BoundNodeKind.GoToStatement;

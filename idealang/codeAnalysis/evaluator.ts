@@ -12,7 +12,7 @@ namespace Idealang{
         }
 
         public evaluate (): all{
-            const labelToIndex = new Map<LabelSymbol, number>();
+            const labelToIndex = new Map<BoundLabel, number>();
 
             for (let i = 0; i < this._root.statements.length; i++) {
                 const statement = this._root.statements[i];

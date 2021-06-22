@@ -196,14 +196,11 @@ namespace Idealang{
                     return this.parseBooleanLiteral();
                 case SyntaxKind.NumberToken:
                     return this.parseNumberLiteral();
+                case SyntaxKind.StringToken:
+                    return this.parseStringLiteral();
                 default:
-                    return this.parseNameToken();
+                    return this.parseNameExpression();
             }
-        }
-
-        private parseNumberLiteral (){
-            const numberToken = this.matchToken(SyntaxKind.NumberToken);
-            return new LiteralExpressionSyntax(numberToken);
         }
 
         private parseParenthesizedExpression (){
@@ -213,13 +210,23 @@ namespace Idealang{
             return new ParenthesizedExpressionSyntax(left, expression, right);
         }
 
+        private parseNumberLiteral (){
+            const numberToken = this.matchToken(SyntaxKind.NumberToken);
+            return new LiteralExpressionSyntax(numberToken);
+        }
+
+        private parseStringLiteral (){
+            const stringToken = this.matchToken(SyntaxKind.StringToken);
+            return new LiteralExpressionSyntax(stringToken);
+        }
+
         private parseBooleanLiteral (){
             const isTrue = this.current.kind === SyntaxKind.TrueKeyword;
             const keywordToken = isTrue ? this.matchToken(SyntaxKind.TrueKeyword) : this.matchToken(SyntaxKind.FalseKeyword);
             return new LiteralExpressionSyntax(keywordToken, isTrue);
         }
 
-        private parseNameToken (){
+        private parseNameExpression (){
             const identifierToken = this.matchToken(SyntaxKind.IdentifierToken);
             return new NameExpressionSyntax(identifierToken);
         }

@@ -18,6 +18,11 @@ namespace Idealang{
             this.report(new TextSpan(position, 1), message);
         }
 
+        public reportUnterminatedString (span: TextSpan){
+            const message = "Unterminated string literal.";
+            this.report(span, message);
+        }
+
         public reportUnexpectedToken (span: TextSpan, actualKind: SyntaxKind, expectedKind: SyntaxKind){
             const message = `Unexpected token <${actualKind}> expected <${expectedKind}>.`;
             this.report(span, message);

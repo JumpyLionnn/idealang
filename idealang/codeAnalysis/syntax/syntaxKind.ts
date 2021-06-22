@@ -6,6 +6,7 @@ namespace Idealang{
         EndOfFileToken = "EndOfFileToken",
         WhitespaceToken = "WhitespaceToken",
         NumberToken = "NumberToken",
+        StringToken = "StringToken",
         PlusToken = "PlusToken",
         MinusToken = "MinusToken",
         StarToken = "StarToken",

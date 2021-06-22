@@ -6,9 +6,9 @@ namespace Idealang {
             super();
         }
 
-        private generateLabel (): LabelSymbol {
+        private generateLabel (): BoundLabel {
             const name = `label${++this._labelCount}`;
-            return new LabelSymbol(name);
+            return new BoundLabel(name);
         }
 
         public static lower (statement: BoundStatement): BoundBlockStatement {
