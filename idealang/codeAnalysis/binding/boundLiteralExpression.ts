@@ -6,7 +6,7 @@ namespace Idealang{
         constructor (value: all){
             super();
             this._value = value;
-            this._type = Type.getType(value);
+            this._type = TypeSymbol.getType(value);
             this._kind = BoundNodeKind.LiteralExpression;
         }
 

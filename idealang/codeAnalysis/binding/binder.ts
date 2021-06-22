@@ -100,8 +100,8 @@ namespace Idealang{
             const condition = this.bindParenthesizedExpression(syntax.condition);
             const thenStatement = this.bindStatement(syntax.thenStatement);
 
-            if(condition.type !== Type.bool){
-                this._diagnostics.reportCannotConvert(syntax.condition.span, condition.type, Type.bool);
+            if(condition.type !== TypeSymbol.bool){
+                this._diagnostics.reportCannotConvert(syntax.condition.span, condition.type, TypeSymbol.bool);
             }
             const elseStatement = syntax.elseClause !== null ? this.bindStatement(syntax.elseClause.elseStatement) : null;
             return new BoundIfStatement(condition, thenStatement, elseStatement);
@@ -111,19 +111,19 @@ namespace Idealang{
             const condition = this.bindParenthesizedExpression(syntax.condition);
             const body = this.bindStatement(syntax.body);
 
-            if(condition.type !== Type.bool){
-                this._diagnostics.reportCannotConvert(syntax.condition.span, condition.type, Type.bool);
+            if(condition.type !== TypeSymbol.bool){
+                this._diagnostics.reportCannotConvert(syntax.condition.span, condition.type, TypeSymbol.bool);
             }
             return new BoundWhileStatement(condition, body);
         }
 
         private bindForStatement (syntax: ForStatementSyntax): BoundForStatement{
-            const lowerBound = this.bindTargetExpression(syntax.lowerBound, Type.int);
-            const upperBound = this.bindTargetExpression(syntax.upperBound, Type.int);
+            const lowerBound = this.bindTargetExpression(syntax.lowerBound, TypeSymbol.int);
+            const upperBound = this.bindTargetExpression(syntax.upperBound, TypeSymbol.int);
 
             this._scope = new BoundScope(this._scope);
             const name = syntax.identifier.text;
-            const variable = new VariableSymbol(name, true, Type.int);
+            const variable = new VariableSymbol(name, true, TypeSymbol.int);
             if(!this._scope.tryDeclare(variable)){
                 this.diagnostics.reportVariableAlreadyDeclared(syntax.identifier.span, name);
             }
@@ -138,10 +138,10 @@ namespace Idealang{
             return new BoundExpressionStatement(expression);
         }
 
-        private bindTargetExpression (syntax: ExpressionSyntax, targetType: Type): BoundExpression{
+        private bindTargetExpression (syntax: ExpressionSyntax, targetType: TypeSymbol): BoundExpression{
             const result = this.bindExpression(syntax);
-            if(targetType !== Type.Error &&
-                result.type !== Type.Error &&
+            if(targetType !== TypeSymbol.Error &&
+                result.type !== TypeSymbol.Error &&
                 result.type !== targetType){
                 this._diagnostics.reportCannotConvert(syntax.span, result.type, targetType);
             }
@@ -218,7 +218,7 @@ namespace Idealang{
 
         private bindUnaryExpression (syntax: UnaryExpressionSyntax): BoundExpression{
             const boundOperand = this.bindExpression(syntax.operand);
-            if(boundOperand.type === Type.Error){
+            if(boundOperand.type === TypeSymbol.Error){
                 return new BoundErrorExpression();
             }
             const boundOperator = BoundUnaryOperator.bind(syntax.operatorToken.kind, boundOperand.type);
@@ -232,7 +232,7 @@ namespace Idealang{
             const boundLeft = this.bindExpression(syntax.left);
             const boundRight = this.bindExpression(syntax.right);
 
-            if (boundLeft.type === Type.Error || boundRight.type === Type.Error){
+            if (boundLeft.type === TypeSymbol.Error || boundRight.type === TypeSymbol.Error){
                 return new BoundErrorExpression();
             }
 

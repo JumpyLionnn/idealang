@@ -203,7 +203,7 @@ namespace Idealang{
             const text = this._text.toString(this._start, this._position - this._start);
             const int = parseInt(text);
             if(int > 2147483648 || int < -2147483648){
-                this._diagnostics.reportInvalidNumber(new TextSpan(this._start, this._start - this._position), text, Type.int);
+                this._diagnostics.reportInvalidNumber(new TextSpan(this._start, this._start - this._position), text, TypeSymbol.int);
             }
             this._value = int;
             this._kind = SyntaxKind.NumberToken;

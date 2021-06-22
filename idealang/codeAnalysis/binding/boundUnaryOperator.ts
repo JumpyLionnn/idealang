@@ -1,13 +1,14 @@
 ///<reference path="boundUnaryOperatorKind.ts"/>
 ///<reference path="../syntax/syntaxKind.ts"/>
+///<reference path="../symbols/typeSymbol.ts"/>
 
 namespace Idealang{
     export class BoundUnaryOperator {
         private _syntaxKind: SyntaxKind;
         private _kind: BoundUnaryOperatorKind;
-        private _operandType: Type;
-        private _resultType: Type;
-        private constructor (syntaxKind: SyntaxKind, kind: BoundUnaryOperatorKind, operandType: Type, resultType?: Type) {
+        private _operandType: TypeSymbol;
+        private _resultType: TypeSymbol;
+        private constructor (syntaxKind: SyntaxKind, kind: BoundUnaryOperatorKind, operandType: TypeSymbol, resultType?: TypeSymbol) {
             this._syntaxKind = syntaxKind;
             this._kind = kind;
             this._operandType = operandType;
@@ -20,12 +21,12 @@ namespace Idealang{
         public get resultType (){return this._resultType;}
 
         private static _operators: BoundUnaryOperator[] = [
-            new BoundUnaryOperator(SyntaxKind.BangToken, BoundUnaryOperatorKind.LogicalNegation, Type.bool),
-            new BoundUnaryOperator(SyntaxKind.PlusToken, BoundUnaryOperatorKind.Identity, Type.int),
-            new BoundUnaryOperator(SyntaxKind.MinusToken, BoundUnaryOperatorKind.Negation, Type.int),
+            new BoundUnaryOperator(SyntaxKind.BangToken, BoundUnaryOperatorKind.LogicalNegation, TypeSymbol.bool),
+            new BoundUnaryOperator(SyntaxKind.PlusToken, BoundUnaryOperatorKind.Identity, TypeSymbol.int),
+            new BoundUnaryOperator(SyntaxKind.MinusToken, BoundUnaryOperatorKind.Negation, TypeSymbol.int),
         ];
 
-        public static bind (syntaxKind: SyntaxKind, operandType: Type): BoundUnaryOperator | null{
+        public static bind (syntaxKind: SyntaxKind, operandType: TypeSymbol): BoundUnaryOperator | null{
             for(let i = 0; i < this._operators.length; i++){
                 if(this._operators[i].syntaxKind === syntaxKind && this._operators[i].operandType === operandType){
                     return this._operators[i];

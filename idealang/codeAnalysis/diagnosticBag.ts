@@ -8,8 +8,8 @@ namespace Idealang{
             this._diagnostics.push(new Diagnostic(span, message));
         }
 
-        public reportInvalidNumber (span: TextSpan, text: string, type: Type){
-            const message = `The number ${text} isn't a valid ${type}.`;
+        public reportInvalidNumber (span: TextSpan, text: string, type: TypeSymbol){
+            const message = `The number ${text} isn't a valid ${type.name}.`;
             this.report(span, message);
         }
 
@@ -28,13 +28,13 @@ namespace Idealang{
             this.report(span, message);
         }
 
-        public reportUndefinedUnaryOperator (span: TextSpan, operatorText: string, operandType: Type){
-            const message = `Unary operator '${operatorText}' is not defined for type ${operandType}.`;
+        public reportUndefinedUnaryOperator (span: TextSpan, operatorText: string, operandType: TypeSymbol){
+            const message = `Unary operator '${operatorText}' is not defined for type ${operandType.name}.`;
             this.report(span, message);
         }
 
-        public reportUndefinedBinaryOperator (span: TextSpan, operatorText: string, leftType: Type, rightType: Type){
-            const message = `Binary operator '${operatorText}' is not defined for type ${leftType} and ${rightType}.`;
+        public reportUndefinedBinaryOperator (span: TextSpan, operatorText: string, leftType: TypeSymbol, rightType: TypeSymbol){
+            const message = `Binary operator '${operatorText}' is not defined for type ${leftType.name} and ${rightType.name}.`;
             this.report(span, message);
         }
 
@@ -53,8 +53,8 @@ namespace Idealang{
             this.report(span, message);
         }
 
-        public reportCannotConvert (span: TextSpan, fromType: Type, toType: Type){
-            const message = `Cannot convert type '${fromType}' to '${toType}'.`;
+        public reportCannotConvert (span: TextSpan, fromType: TypeSymbol, toType: TypeSymbol){
+            const message = `Cannot convert type '${fromType.name}' to '${toType.name}'.`;
             this.report(span, message);
         }
 

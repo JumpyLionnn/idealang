@@ -91,11 +91,11 @@ namespace Idealang {
         protected rewriteForStatement (node: BoundForStatement): BoundStatement {
             const variableDeclaration = new BoundVariableDeclaration(node.variable, node.lowerBound);
             const variableExpression = new BoundVariableExpression(node.variable);
-            const upperBoundSymbol = new VariableSymbol("upperBound", true, Type.int);
+            const upperBoundSymbol = new VariableSymbol("upperBound", true, TypeSymbol.int);
             const upperBoundDeclaration = new BoundVariableDeclaration(upperBoundSymbol, node.upperBound);
             const condition = new BoundBinaryExpression(
                 variableExpression,
-                BoundBinaryOperator.bind(SyntaxKind.LessOrEqualsToken, Type.int, Type.int) as BoundBinaryOperator,
+                BoundBinaryOperator.bind(SyntaxKind.LessOrEqualsToken, TypeSymbol.int, TypeSymbol.int) as BoundBinaryOperator,
                 new BoundVariableExpression(upperBoundSymbol)
             );
             const increment = new BoundExpressionStatement(
@@ -103,7 +103,7 @@ namespace Idealang {
                     node.variable,
                     new BoundBinaryExpression(
                         variableExpression,
-                        BoundBinaryOperator.bind(SyntaxKind.PlusToken, Type.int, Type.int) as BoundBinaryOperator,
+                        BoundBinaryOperator.bind(SyntaxKind.PlusToken, TypeSymbol.int, TypeSymbol.int) as BoundBinaryOperator,
                         new BoundLiteralExpression(1)
                     )
                 )

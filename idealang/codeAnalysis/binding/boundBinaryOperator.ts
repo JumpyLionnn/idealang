@@ -1,13 +1,14 @@
 ///<reference path="boundBinaryOperatorKind.ts"/>
 ///<reference path="../syntax/syntaxKind.ts"/>
+///<reference path="../symbols/typeSymbol.ts"/>
 namespace Idealang{
     export class BoundBinaryOperator {
         private _syntaxKind: SyntaxKind;
         private _kind: BoundBinaryOperatorKind;
-        private _leftType: Type;
-        private _rightType: Type;
-        private _resultType: Type;
-        private constructor (syntaxKind: SyntaxKind, kind: BoundBinaryOperatorKind, leftType: Type, rightType?: Type, resultType?: Type) {
+        private _leftType: TypeSymbol;
+        private _rightType: TypeSymbol;
+        private _resultType: TypeSymbol;
+        private constructor (syntaxKind: SyntaxKind, kind: BoundBinaryOperatorKind, leftType: TypeSymbol, rightType?: TypeSymbol, resultType?: TypeSymbol) {
             this._syntaxKind = syntaxKind;
             this._kind = kind;
             this._leftType = leftType;
@@ -23,31 +24,31 @@ namespace Idealang{
 
 
         private static _operators: BoundBinaryOperator[] = [
-            new BoundBinaryOperator(SyntaxKind.PlusToken, BoundBinaryOperatorKind.Addition, Type.int),
-            new BoundBinaryOperator(SyntaxKind.MinusToken, BoundBinaryOperatorKind.Substruction, Type.int),
-            new BoundBinaryOperator(SyntaxKind.StarToken, BoundBinaryOperatorKind.Multiplication, Type.int),
-            new BoundBinaryOperator(SyntaxKind.SlashToken, BoundBinaryOperatorKind.Division, Type.int),
+            new BoundBinaryOperator(SyntaxKind.PlusToken, BoundBinaryOperatorKind.Addition, TypeSymbol.int),
+            new BoundBinaryOperator(SyntaxKind.MinusToken, BoundBinaryOperatorKind.Substruction, TypeSymbol.int),
+            new BoundBinaryOperator(SyntaxKind.StarToken, BoundBinaryOperatorKind.Multiplication, TypeSymbol.int),
+            new BoundBinaryOperator(SyntaxKind.SlashToken, BoundBinaryOperatorKind.Division, TypeSymbol.int),
 
-            new BoundBinaryOperator(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, Type.int, Type.int, Type.bool),
-            new BoundBinaryOperator(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEquals, Type.int, Type.int, Type.bool),
+            new BoundBinaryOperator(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, TypeSymbol.int, TypeSymbol.int, TypeSymbol.bool),
+            new BoundBinaryOperator(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEquals, TypeSymbol.int, TypeSymbol.int, TypeSymbol.bool),
 
-            new BoundBinaryOperator(SyntaxKind.LessToken, BoundBinaryOperatorKind.Less, Type.int, Type.int, Type.bool),
-            new BoundBinaryOperator(SyntaxKind.LessOrEqualsToken, BoundBinaryOperatorKind.LessOrEquals, Type.int, Type.int, Type.bool),
-            new BoundBinaryOperator(SyntaxKind.GreaterToken, BoundBinaryOperatorKind.Greater, Type.int, Type.int, Type.bool),
-            new BoundBinaryOperator(SyntaxKind.GreaterOrEqualsToken, BoundBinaryOperatorKind.GreaterOrEquals, Type.int, Type.int, Type.bool),
+            new BoundBinaryOperator(SyntaxKind.LessToken, BoundBinaryOperatorKind.Less, TypeSymbol.int, TypeSymbol.int, TypeSymbol.bool),
+            new BoundBinaryOperator(SyntaxKind.LessOrEqualsToken, BoundBinaryOperatorKind.LessOrEquals, TypeSymbol.int, TypeSymbol.int, TypeSymbol.bool),
+            new BoundBinaryOperator(SyntaxKind.GreaterToken, BoundBinaryOperatorKind.Greater, TypeSymbol.int, TypeSymbol.int, TypeSymbol.bool),
+            new BoundBinaryOperator(SyntaxKind.GreaterOrEqualsToken, BoundBinaryOperatorKind.GreaterOrEquals, TypeSymbol.int, TypeSymbol.int, TypeSymbol.bool),
 
-            new BoundBinaryOperator(SyntaxKind.PlusToken, BoundBinaryOperatorKind.Addition, Type.string),
+            new BoundBinaryOperator(SyntaxKind.PlusToken, BoundBinaryOperatorKind.Addition, TypeSymbol.string),
 
-            new BoundBinaryOperator(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, Type.string, Type.string, Type.bool),
-            new BoundBinaryOperator(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEquals, Type.string, Type.string, Type.bool),
+            new BoundBinaryOperator(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, TypeSymbol.string, TypeSymbol.string, TypeSymbol.bool),
+            new BoundBinaryOperator(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEquals, TypeSymbol.string, TypeSymbol.string, TypeSymbol.bool),
 
-            new BoundBinaryOperator(SyntaxKind.AmpersandAmpersandToken, BoundBinaryOperatorKind.LogicalAnd, Type.bool),
-            new BoundBinaryOperator(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.LogicalOr, Type.bool),
-            new BoundBinaryOperator(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, Type.bool),
-            new BoundBinaryOperator(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEquals, Type.bool),
+            new BoundBinaryOperator(SyntaxKind.AmpersandAmpersandToken, BoundBinaryOperatorKind.LogicalAnd, TypeSymbol.bool),
+            new BoundBinaryOperator(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.LogicalOr, TypeSymbol.bool),
+            new BoundBinaryOperator(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, TypeSymbol.bool),
+            new BoundBinaryOperator(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEquals, TypeSymbol.bool),
         ];
 
-        public static bind (syntaxKind: SyntaxKind, leftType: Type, rightType: Type): BoundBinaryOperator | null{
+        public static bind (syntaxKind: SyntaxKind, leftType: TypeSymbol, rightType: TypeSymbol): BoundBinaryOperator | null{
             for(let i = 0; i < this._operators.length; i++){
                 if(this._operators[i].syntaxKind === syntaxKind && this._operators[i].leftType === leftType && this._operators[i].rightType === rightType){
                     return this._operators[i];
