@@ -121,7 +121,10 @@ namespace Idealang{
             const right = this.evaluateExpression(node.right);
             switch (node.operator.kind) {
                 case BoundBinaryOperatorKind.Addition:
-                    return (left as number) + (right as number);
+                    if (node.type === Type.int)
+                        return (left as number) + (right as number);
+                    else
+                        return (left as string) + (right as string);
                 case BoundBinaryOperatorKind.Substruction:
                     return (left as number) - (right as number);
                 case BoundBinaryOperatorKind.Multiplication:
