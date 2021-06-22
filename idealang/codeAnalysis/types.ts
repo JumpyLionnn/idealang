@@ -3,6 +3,7 @@ namespace Idealang{
     export type all = number | boolean | string;
 
     export enum Type{
+        Error = "?",
         int = "int",
         float = "float",
         bool = "bool",
@@ -27,22 +28,6 @@ namespace Idealang{
                 default:
                     throw new Error("Unknown Type.");
             }
-            /*
-            if(typeof data === "number"){
-                if(data % 1 === 0){
-                    return Type.int;
-                }
-                else{
-                    return Type.float;
-                }
-            }
-            else if(typeof data === "boolean"){
-                return Type.bool;
-            }
-            else{
-                throw new Error("Unknown Type.");
-            }
-            */
         }
 
 

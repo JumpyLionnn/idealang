@@ -114,6 +114,8 @@ namespace Idealang {
 
         public rewriteExpression (node: BoundExpression): BoundExpression {
             switch (node.kind) {
+                case BoundNodeKind.ErrorExpression:
+                    return this.rewriteErrorExpression(node as BoundErrorExpression);
                 case BoundNodeKind.LiteralExpression:
                     return this.rewriteLiteralExpression(node as BoundLiteralExpression);
                 case BoundNodeKind.VariableExpression:
@@ -128,6 +130,10 @@ namespace Idealang {
                 default:
                     throw new Error(`Unexpected node king ${node.kind}`);
             }
+        }
+
+        protected rewriteErrorExpression (node: BoundErrorExpression): BoundExpression{
+            return node;
         }
 
         protected rewriteLiteralExpression (node: BoundLiteralExpression): BoundExpression{

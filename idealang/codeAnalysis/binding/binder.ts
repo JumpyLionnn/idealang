@@ -84,12 +84,13 @@ namespace Idealang{
         }
 
         private bindVariableDeclaration (syntax: VariableDeclarationSyntax): BoundVariableDeclaration{
-            const name = syntax.identifier.text;
+            const name = syntax.identifier.text === "" ? "?" : syntax.identifier.text;
+            const declare = !(syntax.identifier.text === "");
             const isReadOnly = syntax.keyword.kind === SyntaxKind.LetKeyword;
             const initializer = this.bindExpression(syntax.initializer);
             const variable = new VariableSymbol(name, isReadOnly, initializer.type);
 
-            if(!this._scope.tryDeclare(variable)){
+            if(declare && !this._scope.tryDeclare(variable)){
                 this.diagnostics.reportVariableAlreadyDeclared(syntax.identifier.span, name);
             }
             return new BoundVariableDeclaration(variable, initializer);
@@ -139,7 +140,9 @@ namespace Idealang{
 
         private bindTargetExpression (syntax: ExpressionSyntax, targetType: Type): BoundExpression{
             const result = this.bindExpression(syntax);
-            if(result.type !== targetType){
+            if(targetType !== Type.Error &&
+                result.type !== Type.Error &&
+                result.type !== targetType){
                 this._diagnostics.reportCannotConvert(syntax.span, result.type, targetType);
             }
             return result;
@@ -182,12 +185,12 @@ namespace Idealang{
         private bindNameExpression (syntax: NameExpressionSyntax): BoundExpression{
             const name = syntax.identifierToken.text;
             if(name === "" || name === null){
-                return new BoundLiteralExpression(0);
+                return new BoundErrorExpression();
             }
             const variable = this._scope.tryLookup(name);
             if(variable === null){
                 this._diagnostics.reportUndefinedName(syntax.identifierToken.span, name);
-                return new BoundLiteralExpression(0);
+                return new BoundErrorExpression();
             }
             return new BoundVariableExpression(variable);
         }
@@ -215,21 +218,29 @@ namespace Idealang{
 
         private bindUnaryExpression (syntax: UnaryExpressionSyntax): BoundExpression{
             const boundOperand = this.bindExpression(syntax.operand);
+            if(boundOperand.type === Type.Error){
+                return new BoundErrorExpression();
+            }
             const boundOperator = BoundUnaryOperator.bind(syntax.operatorToken.kind, boundOperand.type);
             if(boundOperator === null){
                 this._diagnostics.reportUndefinedUnaryOperator(syntax.operatorToken.span, syntax.operatorToken.text, boundOperand.type);
-                return boundOperand;
+                return new BoundErrorExpression();
             }
             return new BoundUnaryExpression(boundOperator, boundOperand);
         }
         private bindBinaryExpression (syntax: BinaryExpressionSyntax): BoundExpression{
             const boundLeft = this.bindExpression(syntax.left);
             const boundRight = this.bindExpression(syntax.right);
+
+            if (boundLeft.type === Type.Error || boundRight.type === Type.Error){
+                return new BoundErrorExpression();
+            }
+
             const boundOperator = BoundBinaryOperator.bind(syntax.operatorToken.kind, boundLeft.type, boundRight.type);
 
             if(boundOperator === null){
                 this._diagnostics.reportUndefinedBinaryOperator(syntax.operatorToken.span, syntax.operatorToken.text, boundLeft.type, boundRight.type);
-                return boundLeft;
+                return new BoundErrorExpression();
             }
 
             return new BoundBinaryExpression(boundLeft, boundOperator, boundRight);

@@ -7,6 +7,7 @@ namespace Idealang{
         AssignmentExpression = "AssignmentExpression",
         UnaryExpression = "UnaryExpression",
         BinaryExpression = "BinaryExpression",
+        ErrorExpression = "ErrorExpression",
 
 
         // statements
