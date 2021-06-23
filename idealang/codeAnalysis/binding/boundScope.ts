@@ -1,6 +1,7 @@
 namespace Idealang{
     export class BoundScope {
         private _variables: Map<string, VariableSymbol> = new Map<string, VariableSymbol>();
+        private _functions: Map<string, FunctionSymbol> = new Map<string, FunctionSymbol>();
         private _parent: BoundScope | null;
 
         constructor (parent: BoundScope | null) {
@@ -9,7 +10,7 @@ namespace Idealang{
 
         public get parent (){return this._parent;}
 
-        public tryDeclare (variable: VariableSymbol): boolean {
+        public tryDeclareVariable (variable: VariableSymbol): boolean {
             if(this._variables.has(variable.name)){
                 return false;
             }
@@ -18,7 +19,7 @@ namespace Idealang{
             return true;
         }
 
-        public tryLookup (name: string): VariableSymbol | null {
+        public tryLookupVariable (name: string): VariableSymbol | null {
             const variable = this._variables.get(name);
             if(variable !== undefined){
                 return variable;
@@ -28,11 +29,38 @@ namespace Idealang{
                 return null;
             }
 
-            return this._parent.tryLookup(name);
+            return this._parent.tryLookupVariable(name);
         }
 
         public getDeclaredVariables (): VariableSymbol[]{
             return Array.from(this._variables.values());
+        }
+
+
+        public tryDeclareFunction (func: FunctionSymbol): boolean {
+            if(this._functions.has(func.name)){
+                return false;
+            }
+
+            this._functions.set(func.name, func);
+            return true;
+        }
+
+        public tryLookupFunction (name: string): FunctionSymbol | null {
+            const func = this._functions.get(name);
+            if(func !== undefined){
+                return func;
+            }
+
+            if(this._parent === null){
+                return null;
+            }
+
+            return this._parent.tryLookupFunction(name);
+        }
+
+        public getDeclaredFunction (): FunctionSymbol[]{
+            return Array.from(this._functions.values());
         }
     }
 }

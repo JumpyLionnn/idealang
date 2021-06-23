@@ -38,17 +38,26 @@ namespace Idealang{
             }
             stack.reverse();
 
-            let parent: BoundScope | null = null;
+            let parent: BoundScope | null = this.createRootScope();
             while(stack.length > 0){
                 previous = stack.pop() as BoundGlobalScope;
                 const scope: BoundScope = new BoundScope(parent);
                 for (let i = 0; i < previous.variables.length; i++) {
                     const variable = previous.variables[i];
-                    scope.tryDeclare(variable);
+                    scope.tryDeclareVariable(variable);
                 }
                 parent = scope;
             }
             return parent;
+        }
+
+        private static createRootScope (): BoundScope | null {
+            const result = new BoundScope(null);
+            for (let i = 0; i < BuiltinFunctions.getAll().length; i++) {
+                const func = BuiltinFunctions.getAll()[i];
+                result.tryDeclareFunction(func);
+            }
+            return result;
         }
 
         private bindStatement (syntax: StatementSyntax): BoundStatement{
@@ -90,7 +99,7 @@ namespace Idealang{
             const initializer = this.bindExpression(syntax.initializer);
             const variable = new VariableSymbol(name, isReadOnly, initializer.type);
 
-            if(declare && !this._scope.tryDeclare(variable)){
+            if(declare && !this._scope.tryDeclareVariable(variable)){
                 this.diagnostics.reportVariableAlreadyDeclared(syntax.identifier.span, name);
             }
             return new BoundVariableDeclaration(variable, initializer);
@@ -124,7 +133,7 @@ namespace Idealang{
             this._scope = new BoundScope(this._scope);
             const name = syntax.identifier.text;
             const variable = new VariableSymbol(name, true, TypeSymbol.int);
-            if(!this._scope.tryDeclare(variable)){
+            if(!this._scope.tryDeclareVariable(variable)){
                 this.diagnostics.reportVariableAlreadyDeclared(syntax.identifier.span, name);
             }
             const body = this.bindStatement(syntax.body);
@@ -198,7 +207,7 @@ namespace Idealang{
             if(name === "" || name === null){
                 return new BoundErrorExpression();
             }
-            const variable = this._scope.tryLookup(name);
+            const variable = this._scope.tryLookupVariable(name);
             if(variable === null){
                 this._diagnostics.reportUndefinedName(syntax.identifierToken.span, name);
                 return new BoundErrorExpression();
@@ -209,9 +218,9 @@ namespace Idealang{
         private bindAssignmentExpression (syntax: AssignmentExpressionSyntax): BoundExpression{
             const name = syntax.identifierToken.text;
             const boundExpression = this.bindExpression(syntax.expression);
-            const variable = this._scope.tryLookup(name);
+            const variable = this._scope.tryLookupVariable(name);
 
-            if(this._scope.tryLookup(name) === null){
+            if(this._scope.tryLookupVariable(name) === null){
                 this._diagnostics.reportUndefinedName(syntax.identifierToken.span, name);
                 return boundExpression;
             }
@@ -265,9 +274,10 @@ namespace Idealang{
                 boundArguments.push(argument);
             }
 
-            const functions = BuiltinFunctions.getAll();
-            const func = functions.filter((func) => func.name === syntax.identifier.text)[0];
-            if(func === undefined){
+            //const functions = BuiltinFunctions.getAll();
+            //const func = functions.filter((func) => func.name === syntax.identifier.text)[0];
+            const func = this._scope.tryLookupFunction(syntax.identifier.text);
+            if(func === null){
                 this._diagnostics.reportUndefinedFunction(syntax.identifier.span, syntax.identifier.text);
                 return new BoundErrorExpression();
             }
