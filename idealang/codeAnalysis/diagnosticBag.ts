@@ -73,6 +73,11 @@ namespace Idealang{
             this.report(span, message);
         }
 
+        public reportExpressionMustHaveValue (span: TextSpan){
+            const message = "Expression must have a value";
+            this.report(span, message);
+        }
+
         public add (diagnostics: DiagnosticBag){
             this._diagnostics.push(...diagnostics._diagnostics);
         }

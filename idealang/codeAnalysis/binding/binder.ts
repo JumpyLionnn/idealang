@@ -14,6 +14,8 @@ namespace Idealang{
             this._scope = new BoundScope(parent);
         }
 
+        public get diagnostics (): DiagnosticBag{return this._diagnostics;}
+
         public static bindGlobalScope (previous: BoundGlobalScope | null, syntax: CompilationUnitSyntax){
             const parentScope = this.createParentScope(previous);
             const binder = new Binder(parentScope);
@@ -48,8 +50,6 @@ namespace Idealang{
             }
             return parent;
         }
-
-        public get diagnostics (): DiagnosticBag{return this._diagnostics;}
 
         private bindStatement (syntax: StatementSyntax): BoundStatement{
             switch (syntax.kind) {
@@ -134,7 +134,7 @@ namespace Idealang{
         }
 
         private bindExpressionStatement (syntax: ExpressionStatementSyntax): BoundStatement{
-            const expression = this.bindExpression(syntax.expression);
+            const expression = this.bindExpression(syntax.expression, true);
             return new BoundExpressionStatement(expression);
         }
 
@@ -148,7 +148,16 @@ namespace Idealang{
             return result;
         }
 
-        private bindExpression (syntax: ExpressionSyntax): BoundExpression{
+        private bindExpression (syntax: ExpressionSyntax, canBeVoid: boolean = false): BoundExpression{
+            const result = this.bindExpressionInternal(syntax);
+            if(!canBeVoid && result.type === TypeSymbol.void){
+                this._diagnostics.reportExpressionMustHaveValue(syntax.span);
+                return new BoundErrorExpression();
+            }
+            return result;
+        }
+
+        private bindExpressionInternal (syntax: ExpressionSyntax): BoundExpression{
             switch (syntax.kind) {
                 case SyntaxKind.ParenthesizedExpression:
                     return this.bindParenthesizedExpression(syntax as ParenthesizedExpressionSyntax);
@@ -230,6 +239,7 @@ namespace Idealang{
             }
             return new BoundUnaryExpression(boundOperator, boundOperand);
         }
+
         private bindBinaryExpression (syntax: BinaryExpressionSyntax): BoundExpression{
             const boundLeft = this.bindExpression(syntax.left);
             const boundRight = this.bindExpression(syntax.right);

@@ -170,7 +170,7 @@ Tests.describe("evaluator for statement upper bound reports cannot convert", (as
 Tests.describe("evaluator unary reports undefined", (assert) => {
     const text = "[+]true;";
 
-    const diagnostics = "Unary operator '+' is not defined for type bool.";
+    const diagnostics = "Unary operator '+' is not defined for type 'bool'.";
 
     assertDiagnostics(assert, text, diagnostics);
 });
@@ -178,7 +178,7 @@ Tests.describe("evaluator unary reports undefined", (assert) => {
 Tests.describe("evaluator binary reports undefined", (assert) => {
     const text = "10[*]true;";
 
-    const diagnostics = "Binary operator '*' is not defined for type int and bool.";
+    const diagnostics = "Binary operator '*' is not defined for type 'int' and 'bool'.";
 
     assertDiagnostics(assert, text, diagnostics);
 });
