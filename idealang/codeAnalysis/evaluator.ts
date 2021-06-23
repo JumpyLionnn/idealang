@@ -165,6 +165,10 @@ namespace Idealang{
                 console.log(message);
                 return null;
             }
+            else if(node.func === BuiltinFunctions.random){
+                const max = this.evaluateExpression(node.callArguments[0]) as number;
+                return Math.floor(Math.random() * max + 1);
+            }
             else{
                 throw new Error(`Unexpected function ${node.func}`);
             }
