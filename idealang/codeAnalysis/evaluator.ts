@@ -85,6 +85,8 @@ namespace Idealang{
                     return this.evaluateBinaryExpression(node as BoundBinaryExpression);
                 case BoundNodeKind.CallExpression:
                     return this.evaluateCallExpression(node as BoundCallExpression);
+                case BoundNodeKind.ConversionExpression:
+                    return this.evaluateConversionExpression(node as BoundConversionExpression);
                 default:
                     throw new Error(`Unexpected node ${node.kind}`);
             }
@@ -171,6 +173,22 @@ namespace Idealang{
             }
             else{
                 throw new Error(`Unexpected function ${node.func}`);
+            }
+        }
+
+        private evaluateConversionExpression (node: BoundConversionExpression){
+            const value = this.evaluateExpression(node.expression);
+            if(node.type === TypeSymbol.bool){
+                return Boolean(value);
+            }
+            else if(node.type === TypeSymbol.int){
+                return Number(value);
+            }
+            else if(node.type === TypeSymbol.string){
+                return String(value);
+            }
+            else{
+                throw new Error(`Unexpected Type ${node.type}`);
             }
         }
     }

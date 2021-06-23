@@ -127,6 +127,8 @@ namespace Idealang {
                     return this.rewriteBinaryExpression(node as BoundBinaryExpression);
                 case BoundNodeKind.CallExpression:
                     return this.rewriteCallExpression(node as BoundCallExpression);
+                case BoundNodeKind.ConversionExpression:
+                    return this.rewriteConversionExpression(node as BoundConversionExpression);
                 default:
                     throw new Error(`Unexpected node king ${node.kind}`);
             }
@@ -190,6 +192,14 @@ namespace Idealang {
                 return node;
             }
             return new BoundCallExpression(node.func, callArguments);
+        }
+
+        protected rewriteConversionExpression (node: BoundConversionExpression){
+            const expression = this.rewriteExpression(node.expression);
+            if(node.expression === expression){
+                return node;
+            }
+            return new BoundConversionExpression(node.type, expression);
         }
     }
 }

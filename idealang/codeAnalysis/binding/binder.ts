@@ -268,14 +268,16 @@ namespace Idealang{
         }
 
         private bindCallExpression (syntax: CallExpressionSyntax): BoundExpression{
+            const type = this.lookupType(syntax.identifier.text);
+            if(syntax.callArguments.count === 1 && type instanceof TypeSymbol){
+                return this.bindConversion(type, syntax.callArguments.get(0));
+            }
+
             const boundArguments: BoundExpression[] = [];
             for (let i = 0; i < syntax.callArguments.count; i++) {
                 const argument = this.bindExpression(syntax.callArguments.get(i));
                 boundArguments.push(argument);
             }
-
-            //const functions = BuiltinFunctions.getAll();
-            //const func = functions.filter((func) => func.name === syntax.identifier.text)[0];
             const func = this._scope.tryLookupFunction(syntax.identifier.text);
             if(func === null){
                 this._diagnostics.reportUndefinedFunction(syntax.identifier.span, syntax.identifier.text);
@@ -296,6 +298,29 @@ namespace Idealang{
                 }
             }
             return new BoundCallExpression(func, boundArguments);
+        }
+
+        private bindConversion (type: TypeSymbol, syntax: ExpressionSyntax){
+            const expression = this.bindExpression(syntax);
+            const conversion = Conversion.classify(expression.type, type);
+            if(!conversion.exists){
+                this._diagnostics.reportCannotConvert(syntax.span, expression.type, type);
+                return new BoundErrorExpression();
+            }
+            return new BoundConversionExpression(type, expression);
+        }
+
+        private lookupType (name: string){
+            switch (name) {
+                case "bool":
+                    return TypeSymbol.bool;
+                case "int":
+                    return TypeSymbol.int;
+                case "string":
+                    return TypeSymbol.string;
+                default:
+                    return null;
+            }
         }
     }
 }

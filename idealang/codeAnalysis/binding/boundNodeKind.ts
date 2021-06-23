@@ -9,6 +9,7 @@ namespace Idealang{
         BinaryExpression = "BinaryExpression",
         ErrorExpression = "ErrorExpression",
         CallExpression = "CallExpression",
+        ConversionExpression = "ConversionExpression",
 
 
         // statements
