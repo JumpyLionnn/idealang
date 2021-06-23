@@ -272,7 +272,6 @@ namespace Idealang{
             if(syntax.callArguments.count === 1 && type instanceof TypeSymbol){
                 return this.bindConversion(type, syntax.callArguments.get(0));
             }
-
             const boundArguments: BoundExpression[] = [];
             for (let i = 0; i < syntax.callArguments.count; i++) {
                 const argument = this.bindExpression(syntax.callArguments.get(i));
