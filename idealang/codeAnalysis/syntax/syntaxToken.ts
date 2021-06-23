@@ -3,15 +3,13 @@ namespace Idealang{
     export class SyntaxToken extends SyntaxNode{
         private _text: string;
         private _position: number;
-        private _value: all;
+        private _value: all | null;
         constructor (kind: SyntaxKind, position: number, text: string, value: all | null){
             super();
             this._kind = kind;
             this._position = position;
             this._text = text;
-            if(value){
-                this._value = value;
-            }
+            this._value = value;
         }
 
         public get text (){return this._text;}
