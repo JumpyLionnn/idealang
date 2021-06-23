@@ -29,17 +29,22 @@ namespace Idealang{
         }
 
         public reportUndefinedUnaryOperator (span: TextSpan, operatorText: string, operandType: TypeSymbol){
-            const message = `Unary operator '${operatorText}' is not defined for type ${operandType.name}.`;
+            const message = `Unary operator '${operatorText}' is not defined for type '${operandType.name}'.`;
             this.report(span, message);
         }
 
         public reportUndefinedBinaryOperator (span: TextSpan, operatorText: string, leftType: TypeSymbol, rightType: TypeSymbol){
-            const message = `Binary operator '${operatorText}' is not defined for type ${leftType.name} and ${rightType.name}.`;
+            const message = `Binary operator '${operatorText}' is not defined for type '${leftType.name}' and '${rightType.name}'.`;
             this.report(span, message);
         }
 
         public reportUndefinedName (span: TextSpan, name: string){
             const message = `Variable '${name}' doesn't exist.`;
+            this.report(span, message);
+        }
+
+        public reportUndefinedFunction (span: TextSpan, name: string){
+            const message = `Function '${name}' doesn't exist.`;
             this.report(span, message);
         }
 
@@ -55,6 +60,16 @@ namespace Idealang{
 
         public reportCannotConvert (span: TextSpan, fromType: TypeSymbol, toType: TypeSymbol){
             const message = `Cannot convert type '${fromType.name}' to '${toType.name}'.`;
+            this.report(span, message);
+        }
+
+        public reportWrongArgumentCount (span: TextSpan, name: string, expectedCount: number, actualCount: number){
+            const message = `Function '${name}' requires ${expectedCount} arguments but only ${actualCount} was given.`;
+            this.report(span, message);
+        }
+
+        public reportWrongArgumentType (span: TextSpan, parameterName: string, parameterType: TypeSymbol, argumentType: TypeSymbol){
+            const message = `Parameter '${parameterName}' requires a value of type ${parameterType.name} but was given a value of type ${argumentType}.`;
             this.report(span, message);
         }
 

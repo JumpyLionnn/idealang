@@ -77,6 +77,10 @@ namespace Idealang{
                     this._kind = SyntaxKind.SemicolonToken;
                     this._position++;
                     break;
+                case ",":
+                    this._kind = SyntaxKind.CommaToken;
+                    this._position++;
+                    break;
                 case "&":
                     if(this.lookAhead === "&"){
                         this._position += 2;

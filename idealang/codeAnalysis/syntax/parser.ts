@@ -199,7 +199,7 @@ namespace Idealang{
                 case SyntaxKind.StringToken:
                     return this.parseStringLiteral();
                 default:
-                    return this.parseNameExpression();
+                    return this.parseNameOrCallExpression();
             }
         }
 
@@ -224,6 +224,36 @@ namespace Idealang{
             const isTrue = this.current.kind === SyntaxKind.TrueKeyword;
             const keywordToken = isTrue ? this.matchToken(SyntaxKind.TrueKeyword) : this.matchToken(SyntaxKind.FalseKeyword);
             return new LiteralExpressionSyntax(keywordToken, isTrue);
+        }
+
+        private parseNameOrCallExpression (): ExpressionSyntax{
+            if(this.peek(0).kind === SyntaxKind.IdentifierToken && this.peek(1).kind === SyntaxKind.OpenParenthesisToken){
+                return this.parseCallExpression();
+            }
+            return this.parseNameExpression();
+        }
+
+        private parseCallExpression (): ExpressionSyntax{
+            const identifier = this.matchToken(SyntaxKind.IdentifierToken);
+            const left = this.matchToken(SyntaxKind.OpenParenthesisToken);
+            const callArguments = this.parseArguments();
+            const right = this.matchToken(SyntaxKind.CloseParenthesisToken);
+            return new CallExpressionSyntax(identifier, left, callArguments, right);
+        }
+
+        private parseArguments (){
+            const nodesAndSeperators: SyntaxNode[] = [];
+            while (this.current.kind !== SyntaxKind.CloseParenthesisToken &&
+                this.current.kind !== SyntaxKind.EndOfFileToken) {
+                const expression = this.parseExpression();
+                nodesAndSeperators.push(expression);
+
+                if((this.current.kind as SyntaxKind) !== SyntaxKind.CloseParenthesisToken){
+                    const comma = this.matchToken(SyntaxKind.CommaToken);
+                    nodesAndSeperators.push(comma);
+                }
+            }
+            return new SeparatedSyntaxList(nodesAndSeperators);
         }
 
         private parseNameExpression (){

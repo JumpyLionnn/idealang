@@ -140,8 +140,8 @@ namespace Idealang{
 
         private bindTargetExpression (syntax: ExpressionSyntax, targetType: TypeSymbol): BoundExpression{
             const result = this.bindExpression(syntax);
-            if(targetType !== TypeSymbol.Error &&
-                result.type !== TypeSymbol.Error &&
+            if(targetType !== TypeSymbol.error &&
+                result.type !== TypeSymbol.error &&
                 result.type !== targetType){
                 this._diagnostics.reportCannotConvert(syntax.span, result.type, targetType);
             }
@@ -162,6 +162,8 @@ namespace Idealang{
                     return this.bindUnaryExpression(syntax as UnaryExpressionSyntax);
                 case SyntaxKind.BinaryExpression:
                     return this.bindBinaryExpression(syntax as BinaryExpressionSyntax);
+                case SyntaxKind.CallExpression:
+                    return this.bindCallExpression(syntax as CallExpressionSyntax);
                 default:
                     throw new Error(`Unexpected syntax ${syntax.kind}`);
             }
@@ -218,7 +220,7 @@ namespace Idealang{
 
         private bindUnaryExpression (syntax: UnaryExpressionSyntax): BoundExpression{
             const boundOperand = this.bindExpression(syntax.operand);
-            if(boundOperand.type === TypeSymbol.Error){
+            if(boundOperand.type === TypeSymbol.error){
                 return new BoundErrorExpression();
             }
             const boundOperator = BoundUnaryOperator.bind(syntax.operatorToken.kind, boundOperand.type);
@@ -232,7 +234,7 @@ namespace Idealang{
             const boundLeft = this.bindExpression(syntax.left);
             const boundRight = this.bindExpression(syntax.right);
 
-            if (boundLeft.type === TypeSymbol.Error || boundRight.type === TypeSymbol.Error){
+            if (boundLeft.type === TypeSymbol.error || boundRight.type === TypeSymbol.error){
                 return new BoundErrorExpression();
             }
 
@@ -244,6 +246,36 @@ namespace Idealang{
             }
 
             return new BoundBinaryExpression(boundLeft, boundOperator, boundRight);
+        }
+
+        private bindCallExpression (syntax: CallExpressionSyntax): BoundExpression{
+            const boundArguments: BoundExpression[] = [];
+            for (let i = 0; i < syntax.callArguments.count; i++) {
+                const argument = this.bindExpression(syntax.callArguments.get(i));
+                boundArguments.push(argument);
+            }
+
+            const functions = BuiltinFunctions.getAll();
+            const func = functions.filter((func) => func.name === syntax.identifier.text)[0];
+            if(func === undefined){
+                this._diagnostics.reportUndefinedFunction(syntax.identifier.span, syntax.identifier.text);
+                return new BoundErrorExpression();
+            }
+
+            if (syntax.callArguments.count !== func.parameters.length){
+                this._diagnostics.reportWrongArgumentCount(syntax.span, func.name, func.parameters.length, syntax.callArguments.count);
+                return new BoundErrorExpression();
+            }
+
+            for (let i = 0; i < syntax.callArguments.count; i++) {
+                const parameter = func.parameters[i];
+                const argument = boundArguments[i];
+                if(argument.type !== parameter.type){
+                    this._diagnostics.reportWrongArgumentType(syntax.span, parameter.name, parameter.type, argument.type);
+                    return new BoundErrorExpression();
+                }
+            }
+            return new BoundCallExpression(func, boundArguments);
         }
     }
 }

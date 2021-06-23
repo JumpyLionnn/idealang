@@ -25,6 +25,7 @@ namespace Idealang{
         CloseParenthesisToken = "CloseParenthesisToken",
         OpenBraceToken = "OpenBraceToken",
         CloseBraceToken = "CloseBraceToken",
+        CommaToken = "CommaToken",
         SemicolonToken = "SemicolonToken",
         IdentifierToken = "IdentifierToken",
 
@@ -57,6 +58,7 @@ namespace Idealang{
         AssignmentExpression = "AssignmentExpression",
         BinaryExpression = "BinaryExpression",
         UnaryExpression = "UnaryExpression",
-        ParenthesizedExpression = "ParenthesizedExpression"
+        ParenthesizedExpression = "ParenthesizedExpression",
+        CallExpression = "CallExpression"
     }
 }

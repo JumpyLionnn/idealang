@@ -2,7 +2,8 @@
 ///<reference path="symbolKind.ts"/>
 namespace Idealang{
     export class TypeSymbol extends Symbol {
-        public static readonly Error = new  TypeSymbol("?");
+        public static readonly error = new  TypeSymbol("?");
+        public static readonly void = new  TypeSymbol("void");
         public static readonly int = new  TypeSymbol("int");
         public static readonly float = new  TypeSymbol("float");
         public static readonly bool = new  TypeSymbol("bool");

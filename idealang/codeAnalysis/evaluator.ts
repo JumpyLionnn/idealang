@@ -1,6 +1,7 @@
 ///<reference path="syntax/unaryExpressionSyntax.ts" />
 ///<reference path="binding/boundUnaryExpression.ts" />
 namespace Idealang{
+    const readlineSync = require("readline-sync");
     export class Evaluator {
         private readonly _root: BoundBlockStatement;
         private readonly _variables: VariablesMap;
@@ -82,6 +83,8 @@ namespace Idealang{
                     return this.evaluateUnaryExpression(node as BoundUnaryExpression);
                 case BoundNodeKind.BinaryExpression:
                     return this.evaluateBinaryExpression(node as BoundBinaryExpression);
+                case BoundNodeKind.CallExpression:
+                    return this.evaluateCallExpression(node as BoundCallExpression);
                 default:
                     throw new Error(`Unexpected node ${node.kind}`);
             }
@@ -149,6 +152,21 @@ namespace Idealang{
                     return left >= right;
                 default:
                     throw new Error(`Unexpected binary operator ${node.operator.kind}`);
+            }
+        }
+
+        private evaluateCallExpression (node: BoundCallExpression){
+            if(node.func === BuiltinFunctions.input) {
+                const message = this.evaluateExpression(node.callArguments[0]) as string;
+                return readlineSync.question(message);
+            }
+            else if(node.func === BuiltinFunctions.print){
+                const message = this.evaluateExpression(node.callArguments[0]) as string;
+                console.log(message);
+                return null;
+            }
+            else{
+                throw new Error(`Unexpected function ${node.func}`);
             }
         }
     }

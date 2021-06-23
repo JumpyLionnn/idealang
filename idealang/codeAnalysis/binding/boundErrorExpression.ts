@@ -3,7 +3,7 @@ namespace Idealang{
         constructor () {
             super();
             this._kind = BoundNodeKind.ErrorExpression;
-            this._type = TypeSymbol.Error;
+            this._type = TypeSymbol.error;
         }
 
         public getChildren (){

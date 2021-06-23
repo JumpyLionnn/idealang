@@ -1,6 +1,5 @@
 namespace Idealang {
     export abstract class BoundTreeRewriter {
-
         public rewriteStatement (node: BoundStatement): BoundStatement {
             switch (node.kind) {
                 case BoundNodeKind.BlockStatement:
@@ -126,7 +125,8 @@ namespace Idealang {
                     return this.rewriteUnaryExpression(node as BoundUnaryExpression);
                 case BoundNodeKind.BinaryExpression:
                     return this.rewriteBinaryExpression(node as BoundBinaryExpression);
-
+                case BoundNodeKind.CallExpression:
+                    return this.rewriteCallExpression(node as BoundCallExpression);
                 default:
                     throw new Error(`Unexpected node king ${node.kind}`);
             }
@@ -167,6 +167,29 @@ namespace Idealang {
                 return node;
             }
             return new BoundBinaryExpression(left, node.operator, right);
+        }
+
+        protected rewriteCallExpression (node: BoundCallExpression): BoundExpression {
+            let callArguments: BoundExpression[] | null = null;
+            for (let i = 0; i < node.callArguments.length; i++) {
+                const oldExpression = node.callArguments[i];
+                const newExpression = this.rewriteExpression(oldExpression);
+                if(newExpression !== oldExpression){
+                    if(callArguments === null){
+                        callArguments = [];
+                        for (let j = 0; j < i; j++) {
+                            callArguments.push(node.callArguments[j]);
+                        }
+                    }
+                }
+                if(callArguments !== null){
+                    callArguments.push(newExpression);
+                }
+            }
+            if(callArguments === null){
+                return node;
+            }
+            return new BoundCallExpression(node.func, callArguments);
         }
     }
 }

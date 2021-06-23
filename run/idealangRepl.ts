@@ -51,7 +51,9 @@ class IdealangRepl extends Repl {
         }
         else{
             this._previous = compilation;
-            cConsole.log(result.value);
+            if(result.value !== null){
+                cConsole.log(result.value);
+            }
         }
     }
 

@@ -131,6 +131,8 @@ namespace Idealang{
                     return "}";
                 case SyntaxKind.SemicolonToken:
                     return ";";
+                case SyntaxKind.CommaToken:
+                    return ",";
                 case SyntaxKind.FalseKeyword:
                     return "false";
                 case SyntaxKind.TrueKeyword:
